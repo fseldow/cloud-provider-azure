@@ -1,4 +1,4 @@
-package connect
+package basic
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	testutils "k8s.io/cloud-provider-azure/tests/azure-test/utils"
-	imageutils "k8s.io/cloud-provider-azure/tests/azure-test/utils/image"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -49,7 +48,7 @@ var _ = Describe("test ", func() {
 				Containers: []v1.Container{
 					{
 						Name:  "nginx",
-						Image: imageutils.GetPauseImageName(),
+						Image: testutils.PodImage,
 					},
 				},
 			},
