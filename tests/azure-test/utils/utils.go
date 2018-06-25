@@ -31,8 +31,18 @@ const (
 	PodImage = "k8s.grc.io/pause:3.1"
 )
 
+func findExistingKubeConfig() string {
+	defaultKubeConfig := "/etc/kubernetes/admin.conf"
+	// locations using DefaultClientConfigLoadingRules, but also consider `defaultKubeConfig`.
+	rules := clientcmd.NewDefaultClientConfigLoadingRules()
+	rules.Precedence = append(rules.Precedence, defaultKubeConfig)
+	return rules.GetDefaultFilename()
+}
+
 // GetClientSet obtains the client set interface from Kubeconfig
-func GetClientSet(filename string) (clientset.Interface, error) {
+func GetClientSet() (clientset.Interface, error) {
+	filename := findExistingKubeConfig()
+	//fmt.Printf(filename)
 	c := clientcmd.GetConfigFromFileOrDie(filename)
 	restConfig, err := clientcmd.NewDefaultClientConfig(*c, &clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: ""}}).ClientConfig()
 	if err != nil {

@@ -19,7 +19,7 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 	var cs clientset.Interface
 	basename := "autoscaler"
 	var ns *v1.Namespace
-	configPath := "C:\\Users\\t-xinhli\\.kube\\kubeconfig.eastus.json"
+	//configPath := "C:\\Users\\t-xinhli\\.kube\\kubeconfig.eastus.json"
 
 	var initNodeCount int
 	var initCoreCount int64
@@ -32,7 +32,7 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 
 	BeforeEach(func() {
 		By("Creating a kubernetes client")
-		cs, err = testutils.GetClientSet(configPath)
+		cs, err = testutils.GetClientSet()
 		Expect(err).To(BeNil())
 
 		By("Creating namespace")
@@ -77,6 +77,29 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 
 	})
 
+	It("create two new empty nodes, should delete the nodes automaticaly", func() {
+		By("creating two new nodes")
+
+		for i := 0; i < 2; i++ {
+			name := "k8s-agentpool-vmss-test-" + string(uuid.NewUUID())
+			node := &v1.Node{
+				ObjectMeta: metav1.ObjectMeta{Name: name},
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Node",
+					APIVersion: "v1",
+				},
+			}
+			_, err := cs.CoreV1().Nodes().Create(node)
+			Expect(err).NotTo(HaveOccurred())
+		}
+
+		By("waiting for 2 nodes automatically deletion")
+		resultNodeCount, err := testutils.WaitAutoScaleNodes(cs, initNodeCount)
+		Expect(err).NotTo(HaveOccurred())
+		By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
+		Expect(resultNodeCount).To(Equal(initNodeCount))
+	})
+
 	It("should add nodes if pending pod exceeds volumn. +1 node in test", func() {
 		By("creating pods")
 		//pod_core := initCoreCount / int64(initNodeCount)
@@ -113,29 +136,6 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 		Expect(err).NotTo(HaveOccurred())
 		By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
 		Expect(resultNodeCount).To(Equal(targetNodeCount))
-	})
-
-	It("create two new empty nodes, should delete the nodes automaticaly", func() {
-		By("creating two new nodes")
-
-		for i := 0; i < 2; i++ {
-			name := "k8s-agentpool-vmss-test-" + string(uuid.NewUUID())
-			node := &v1.Node{
-				ObjectMeta: metav1.ObjectMeta{Name: name},
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "Node",
-					APIVersion: "v1",
-				},
-			}
-			_, err := cs.CoreV1().Nodes().Create(node)
-			Expect(err).NotTo(HaveOccurred())
-		}
-
-		By("waiting for 2 nodes automatically deletion")
-		resultNodeCount, err := testutils.WaitAutoScaleNodes(cs, initNodeCount)
-		Expect(err).NotTo(HaveOccurred())
-		By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
-		Expect(resultNodeCount).To(Equal(initNodeCount))
 	})
 
 })

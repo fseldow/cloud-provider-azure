@@ -1,4 +1,4 @@
-package basic
+package main
 
 import (
 	"fmt"
@@ -19,12 +19,12 @@ var _ = Describe("test ", func() {
 	var cs clientset.Interface
 	basename := "test"
 	var ns *v1.Namespace
-	configPath := "C:\\Users\\t-xinhli\\.kube\\config"
+	//configPath := "C:\\Users\\t-xinhli\\.kube\\config"
 	var err error
 
 	BeforeEach(func() {
 		By("Creating a kubernetes client")
-		cs, _ = testutils.GetClientSet(configPath)
+		cs, _ = testutils.GetClientSet()
 
 		By("Creating namespace")
 		ns, _ = testutils.CreateTestingNS(basename, cs, nil)
@@ -71,7 +71,25 @@ func getServerVersion(filename string) (bool, error) {
 	return serverVersion == nil, nil
 }
 
+func findExistingKubeConfig(file string) string {
+	// The user did provide a --kubeconfig flag. Respect that and threat it as an
+	// explicit path without building a DefaultClientConfigLoadingRules object.
+	defaultKubeConfig := "aa"
+	if file != defaultKubeConfig {
+		return file
+	}
+	// The user did not provide a --kubeconfig flag. Find a config in the standard
+	// locations using DefaultClientConfigLoadingRules, but also consider `defaultKubeConfig`.
+	rules := clientcmd.NewDefaultClientConfigLoadingRules()
+	rules.Precedence = append(rules.Precedence, defaultKubeConfig)
+	return rules.GetDefaultFilename()
+}
+
 func main() {
+	var a string
+	a = "aa"
+	a = findExistingKubeConfig(a)
+
 	_, e := getServerVersion("C:\\Users\\t-xinhli\\.kube\\config")
 	if e != nil {
 		fmt.Sprint(e)
