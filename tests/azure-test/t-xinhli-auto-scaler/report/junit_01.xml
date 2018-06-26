@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <testsuite tests="2" failures="0" time="486.8583721">
+      <testcase name="[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow] should add nodes if pending pod exceeds volumn. +1 node in test" classname="Azure Specific e2e Suite" time="411.6676409"></testcase>
+      <testcase name="[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow] create two new empty nodes, should delete the nodes automaticaly" classname="Azure Specific e2e Suite" time="75.1907312"></testcase>
+  </testsuite>

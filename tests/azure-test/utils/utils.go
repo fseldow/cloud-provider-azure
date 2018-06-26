@@ -28,8 +28,10 @@ const (
 	pollShortTimeout = 1 * time.Minute
 	pollLongTimeout  = 5 * time.Minute
 
-	PodImage = "k8s.grc.io/pause:3.1"
+	PodImage = "k8s.gcr.io/pause:3.1"
 )
+
+var DNSPrefix string
 
 func findExistingKubeConfig() string {
 	defaultKubeConfig := "/etc/kubernetes/admin.conf"
@@ -53,6 +55,14 @@ func GetClientSet() (clientset.Interface, error) {
 		return nil, err
 	}
 	return clientSet, nil
+}
+
+// ExtractDNSPrefix obtains the cluster DNS prefix
+func ExtractDNSPrefix() string {
+	filename := findExistingKubeConfig()
+	//fmt.Printf(filename)
+	c := clientcmd.GetConfigFromFileOrDie(filename)
+	return c.CurrentContext
 }
 
 //CreateTestingNS builds namespace for each test
@@ -127,6 +137,23 @@ func WaitListSchedulableNodes(c clientset.Interface) (*v1.NodeList, error) {
 		return nodes, err
 	}
 	return nodes, nil
+}
+
+// WaitListPods is a wapper around listing pods
+func WaitListPods(c clientset.Interface, ns string) (*v1.PodList, error) {
+	var pods *v1.PodList
+	var err error
+	if wait.PollImmediate(Poll, SingleCallTimeout, func() (bool, error) {
+		//label := labels.SelectorFromSet(labels.Set(map[string]string{"app": "cassandra"}))
+		pods, err = c.CoreV1().Pods(ns).List(metav1.ListOptions{})
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}) != nil {
+		return pods, err
+	}
+	return pods, nil
 }
 
 // WaitAutoScaleNodes returns nodes count after autoscaling in 10 minutes

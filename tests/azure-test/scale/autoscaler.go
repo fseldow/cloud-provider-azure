@@ -3,6 +3,7 @@ package scale
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -77,6 +78,55 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 
 	})
 
+	It("should add nodes if pending pod exceeds volumn. +1 node in test", func() {
+		By("creating pods")
+		nodeCore := initCoreCount / int64(initNodeCount)
+		var podSize int64
+		podSize = 200
+		podCount := int(nodeCore * 1000 / podSize)
+
+		for i := 0; i < podCount; i++ {
+			name := "pod-new-" + string(uuid.NewUUID())
+			pod := &v1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: name,
+				},
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name:  "container" + string(uuid.NewUUID()),
+							Image: testutils.PodImage,
+							Resources: v1.ResourceRequirements{
+								Requests: v1.ResourceList{
+									v1.ResourceCPU: resource.MustParse(
+										strconv.FormatInt(podSize, 10) + "m"),
+								},
+							},
+						},
+					},
+				},
+			}
+
+			_, err = cs.CoreV1().Pods(ns.Name).Create(pod)
+			Expect(err).NotTo(HaveOccurred())
+
+		}
+		time.Sleep(10 * time.Second)
+		pods, _ := testutils.WaitListPods(cs, ns.Name)
+		fmt.Print(len(pods.Items))
+		for _, p := range pods.Items {
+			fmt.Printf(string(p.Status.Phase) + "\n")
+		}
+
+		targetNodeCount := initNodeCount + 1
+		By(fmt.Sprintf("scaling up the node... Target node count: %v", targetNodeCount))
+
+		resultNodeCount, err := testutils.WaitAutoScaleNodes(cs, targetNodeCount)
+		Expect(err).NotTo(HaveOccurred())
+		By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
+		Expect(resultNodeCount).To(Equal(targetNodeCount))
+	})
+
 	It("create two new empty nodes, should delete the nodes automaticaly", func() {
 		By("creating two new nodes")
 
@@ -98,44 +148,6 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 		Expect(err).NotTo(HaveOccurred())
 		By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
 		Expect(resultNodeCount).To(Equal(initNodeCount))
-	})
-
-	It("should add nodes if pending pod exceeds volumn. +1 node in test", func() {
-		By("creating pods")
-		//pod_core := initCoreCount / int64(initNodeCount)
-		for i := 0; i < 10; i++ {
-			name := "pod-qos-class-" + string(uuid.NewUUID())
-			pod := &v1.Pod{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: name,
-				},
-				Spec: v1.PodSpec{
-					Containers: []v1.Container{
-						{
-							Name:  name + "-ctl",
-							Image: testutils.PodImage,
-							Resources: v1.ResourceRequirements{
-								Requests: v1.ResourceList{
-									v1.ResourceCPU: resource.MustParse(
-										strconv.FormatInt(200, 10) + "m"),
-								},
-							},
-						},
-					},
-				},
-			}
-
-			_, err = cs.CoreV1().Pods(ns.Name).Create(pod)
-			Expect(err).NotTo(HaveOccurred())
-		}
-
-		targetNodeCount := initNodeCount + 1
-		By(fmt.Sprintf("scaling up the node... Target node count: %v", targetNodeCount))
-
-		resultNodeCount, err := testutils.WaitAutoScaleNodes(cs, targetNodeCount)
-		Expect(err).NotTo(HaveOccurred())
-		By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
-		Expect(resultNodeCount).To(Equal(targetNodeCount))
 	})
 
 })

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,6 +11,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	testutils "k8s.io/cloud-provider-azure/tests/azure-test/utils"
+	//imageutils "k8s.io/cloud-provider-azure/tests/azure-test/utils/image"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -38,6 +40,7 @@ var _ = Describe("test ", func() {
 	})
 
 	It("add a single pod", func() {
+		//fmt.Printf(imageutils.GetPauseImageName())
 		By("creating the pod")
 		name := "pod-qos-class-" + string(uuid.NewUUID())
 		pod := &v1.Pod{
@@ -55,10 +58,19 @@ var _ = Describe("test ", func() {
 		}
 		pod, err = cs.CoreV1().Pods(ns.Name).Create(pod)
 		Expect(err).NotTo(HaveOccurred())
+
+		time.Sleep(10 * time.Second)
+		pods, _ := testutils.WaitListPods(cs, ns.Name)
+		fmt.Print(len(pods.Items))
+		for _, p := range pods.Items {
+			fmt.Printf(string(p.Status.Phase) + "\n")
+		}
+		//label := labels.SelectorFromSet(labels.Set(map[string]string{"app": "cassandra"}))
+		//p1 := cs.CoreV1().Pods(ns.Name).Get(name, metav1.GetOptions{})
 	})
 
 	AfterEach(func() {
-		//testutils.DeleteNS(cs, ns.Name)
+		testutils.DeleteNS(cs, ns.Name)
 	})
 
 })
