@@ -15,7 +15,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	//_ "k8s.io/cloud-provider-azure/tests/azure-test/basic"
-	_ "k8s.io/cloud-provider-azure/tests/azure-test/scale"
+	//_ "k8s.io/cloud-provider-azure/tests/azure-test/scale"
+	_ "k8s.io/cloud-provider-azure/tests/azure-test/network"
 )
 
 func TestAzureTest(t *testing.T) {

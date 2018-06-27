@@ -7,7 +7,6 @@ import (
 	"k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
@@ -30,8 +29,6 @@ const (
 
 	PodImage = "k8s.gcr.io/pause:3.1"
 )
-
-var DNSPrefix string
 
 func findExistingKubeConfig() string {
 	defaultKubeConfig := "/etc/kubernetes/admin.conf"
@@ -71,8 +68,8 @@ func CreateTestingNS(baseName string, c clientset.Interface, labels map[string]s
 	if labels == nil {
 		labels = map[string]string{}
 	}
-	var RunId = uuid.NewUUID()
-	labels["e2e-run"] = string(RunId)
+	var runId = uuid.NewUUID()
+	labels["e2e-run"] = string(runId)
 
 	namespaceObj := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -121,24 +118,6 @@ func DeleteNS(c clientset.Interface, namespace string) error {
 	return err
 }
 
-// WaitListSchedulableNodes is a wapper around listing nodes
-func WaitListSchedulableNodes(c clientset.Interface) (*v1.NodeList, error) {
-	var nodes *v1.NodeList
-	var err error
-	if wait.PollImmediate(Poll, SingleCallTimeout, func() (bool, error) {
-		nodes, err = c.CoreV1().Nodes().List(metav1.ListOptions{FieldSelector: fields.Set{
-			"spec.unschedulable": "false",
-		}.AsSelector().String()})
-		if err != nil {
-			return false, err
-		}
-		return true, nil
-	}) != nil {
-		return nodes, err
-	}
-	return nodes, nil
-}
-
 // WaitListPods is a wapper around listing pods
 func WaitListPods(c clientset.Interface, ns string) (*v1.PodList, error) {
 	var pods *v1.PodList
@@ -156,24 +135,6 @@ func WaitListPods(c clientset.Interface, ns string) (*v1.PodList, error) {
 	return pods, nil
 }
 
-// WaitAutoScaleNodes returns nodes count after autoscaling in 10 minutes
-func WaitAutoScaleNodes(c clientset.Interface, targetNodeCount int) (int, error) {
-	var nodes *v1.NodeList
-	var err error
-	if wait.PollImmediate(Poll, AutoScaleTimeOut, func() (bool, error) {
-		nodes, err = c.CoreV1().Nodes().List(metav1.ListOptions{FieldSelector: fields.Set{
-			"spec.unschedulable": "false",
-		}.AsSelector().String()})
-		if err != nil {
-			return false, err
-		}
-		return targetNodeCount == len(nodes.Items), nil
-	}) != nil {
-		return len(nodes.Items), err
-	}
-	return len(nodes.Items), nil
-}
-
 // StringInSlice check if string in a list
 func StringInSlice(s string, list []string) bool {
 	for _, item := range list {
@@ -182,35 +143,4 @@ func StringInSlice(s string, list []string) bool {
 		}
 	}
 	return false
-}
-
-// WaitNodeDeletion ensures a list of nodes to be deleted
-func WaitNodeDeletion(cs clientset.Interface, names []string) error {
-	for _, name := range names {
-		if err := deleteNode(cs, name); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-//deleteNodes deletes nodes according to names
-func deleteNode(cs clientset.Interface, name string) error {
-	if err := cs.CoreV1().Nodes().Delete(name, nil); err != nil {
-		return err
-	}
-
-	// wait for namespace to delete or timeout.
-	err := wait.PollImmediate(2*time.Second, DeleteNSTimeout, func() (bool, error) {
-		if _, err := cs.CoreV1().Nodes().Get(name, metav1.GetOptions{}); err != nil {
-			if apierrs.IsNotFound(err) {
-				return true, nil
-			}
-			//Logf("Error while waiting for namespace to be terminated: %v", err)
-			return false, nil
-		}
-		return false, nil
-	})
-
-	return err
 }

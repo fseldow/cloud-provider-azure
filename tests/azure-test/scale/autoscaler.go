@@ -20,7 +20,6 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 	var cs clientset.Interface
 	basename := "autoscaler"
 	var ns *v1.Namespace
-	//configPath := "C:\\Users\\t-xinhli\\.kube\\kubeconfig.eastus.json"
 
 	var initNodeCount int
 	var initCoreCount int64
@@ -62,6 +61,7 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 	AfterEach(func() {
 		for _, nsToDel := range namespacesToDelete {
 			testutils.DeleteNS(cs, nsToDel.Name)
+			Expect(err).NotTo(HaveOccurred())
 		}
 		//delete extra nodes
 		nodes, err := testutils.WaitListSchedulableNodes(cs)
