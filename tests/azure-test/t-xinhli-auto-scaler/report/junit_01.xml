@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="125.6224766">
-      <testcase name="[Conformance]Service Connection  can be done via DNS [Feature: DNS]" classname="Azure Specific e2e Suite" time="125.6224766"></testcase>
-  </testsuite>

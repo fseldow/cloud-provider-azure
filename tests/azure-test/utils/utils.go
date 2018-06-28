@@ -68,8 +68,8 @@ func CreateTestingNS(baseName string, c clientset.Interface, labels map[string]s
 	if labels == nil {
 		labels = map[string]string{}
 	}
-	var runId = uuid.NewUUID()
-	labels["e2e-run"] = string(runId)
+	var runID = uuid.NewUUID()
+	labels["e2e-run"] = string(runID)
 
 	namespaceObj := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{

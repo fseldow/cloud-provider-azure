@@ -109,7 +109,6 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 
 			_, err = cs.CoreV1().Pods(ns.Name).Create(pod)
 			Expect(err).NotTo(HaveOccurred())
-
 		}
 		time.Sleep(10 * time.Second)
 		pods, _ := testutils.WaitListPods(cs, ns.Name)
