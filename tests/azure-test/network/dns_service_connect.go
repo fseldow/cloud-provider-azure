@@ -44,9 +44,9 @@ var _ = Describe("[Conformance]Service Connection ", func() {
 	})
 
 	It("can be done via DNS [Feature: DNS]", func() {
-		serviceName := "my-service"
+		serviceName := "dns-service"
 		labels := map[string]string{
-			"app": "test-server",
+			"app": "dns-server",
 		}
 		ports := []v1.ServicePort{{
 			Port:       8080,
