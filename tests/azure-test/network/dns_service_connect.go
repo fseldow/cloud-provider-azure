@@ -37,12 +37,10 @@ var _ = Describe("[Conformance]Service Connection ", func() {
 	})
 
 	AfterEach(func() {
-		/*
-			for _, nsToDel := range namespacesToDelete {
-				err = testutils.DeleteNS(cs, nsToDel.Name)
-				Expect(err).NotTo(HaveOccurred())
-			}
-		*/
+		for _, nsToDel := range namespacesToDelete {
+			err = testutils.DeleteNS(cs, nsToDel.Name)
+			Expect(err).NotTo(HaveOccurred())
+		}
 	})
 
 	It("can be done via DNS [Feature: DNS]", func() {
@@ -93,12 +91,10 @@ var _ = Describe("[Conformance]Service Connection ", func() {
 		if resp != nil {
 			resp.Body.Close()
 		}
-		/*
-			By("Cleaning up")
-			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
-			Expect(err).NotTo(HaveOccurred())
-			err = cs.Extensions().Deployments(ns.Name).Delete(serviceName, nil)
-			Expect(err).NotTo(HaveOccurred())
-		*/
+		By("Cleaning up")
+		err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
+		Expect(err).NotTo(HaveOccurred())
+		err = cs.Extensions().Deployments(ns.Name).Delete(serviceName, nil)
+		Expect(err).NotTo(HaveOccurred())
 	})
 })

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"k8s.io/api/core/v1"
@@ -56,10 +57,28 @@ func GetClientSet() (clientset.Interface, error) {
 
 // ExtractDNSPrefix obtains the cluster DNS prefix
 func ExtractDNSPrefix() string {
+	c := ObtainConfig()
+	return c.CurrentContext
+}
+
+// ExtractRegion obtains the cluster region
+func ExtractRegion() string {
+	c := ObtainConfig()
+	prefix := ExtractDNSPrefix()
+	url := c.Clusters[prefix].Server
+	domain := strings.Split(url, ".")
+	if len(domain) < 4 {
+		return "NaN"
+	}
+	return domain[len(domain)-4]
+}
+
+// Load config from file
+func ObtainConfig() *clientcmdapi.Config {
 	filename := findExistingKubeConfig()
 	//fmt.Printf(filename)
 	c := clientcmd.GetConfigFromFileOrDie(filename)
-	return c.CurrentContext
+	return c
 }
 
 //CreateTestingNS builds namespace for each test
@@ -116,23 +135,6 @@ func DeleteNS(c clientset.Interface, namespace string) error {
 	})
 
 	return err
-}
-
-// WaitListPods is a wapper around listing pods
-func WaitListPods(c clientset.Interface, ns string) (*v1.PodList, error) {
-	var pods *v1.PodList
-	var err error
-	if wait.PollImmediate(Poll, SingleCallTimeout, func() (bool, error) {
-		//label := labels.SelectorFromSet(labels.Set(map[string]string{"app": "cassandra"}))
-		pods, err = c.CoreV1().Pods(ns).List(metav1.ListOptions{})
-		if err != nil {
-			return false, err
-		}
-		return true, nil
-	}) != nil {
-		return pods, err
-	}
-	return pods, nil
 }
 
 // StringInSlice check if string in a list
