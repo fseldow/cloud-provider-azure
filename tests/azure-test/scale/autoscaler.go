@@ -77,9 +77,7 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 
 	})
 
-	It("add pod robustly", func() {
-		By("Up scale")
-
+	It("when adding pod robustly (only upscale)", func() {
 		By("creating pods")
 		nodeCore := initCoreCount / int64(initNodeCount)
 		var podSize int64
@@ -97,6 +95,13 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 			_, err = cs.CoreV1().Pods(ns.Name).Create(pod)
 			Expect(err).NotTo(HaveOccurred())
 		}
+		defer func() {
+			By("delete pods")
+			pods, _ := testutils.WaitListPods(cs, ns.Name)
+			for _, p := range pods.Items {
+				cs.CoreV1().Pods(ns.Name).Delete(p.Name, nil)
+			}
+		}()
 
 		time.Sleep(10 * time.Second)
 		pods, _ := testutils.WaitListPods(cs, ns.Name)
@@ -113,117 +118,59 @@ var _ = Describe("[Serial][Feature:Autoscaler] Cluster node autoscaling [Slow]",
 		Expect(resultNodeCount).To(Equal(targetNodeCount))
 
 	})
-	/*
 
-		It("should add nodes if pending pod exceeds volumn. +1 node in test", func() {
-			By("Up scale")
+	It("when deployment (upscale + downscale)", func() {
+		fmt.Printf("Start up scaling")
+		By("Up scale")
 
-			By("creating pods")
-			nodeCore := initCoreCount / int64(initNodeCount)
-			var podSize int64
-			podSize = 200
-			podCount := int(nodeCore * 1000 / podSize)
+		By("creating pods")
+		nodeCore := initCoreCount / int64(initNodeCount)
+		var podSize int64
+		podSize = 200
+		podCount := int(nodeCore * 1000 / podSize)
 
-			pod := testutils.DefaultPod(basename + "-pod")
-			pod.Spec.Containers[0].Resources = v1.ResourceRequirements{
-				Requests: v1.ResourceList{
-					v1.ResourceCPU: resource.MustParse(
-						strconv.FormatInt(podSize, 10) + "m"),
-				},
-			}
+		pod := testutils.DefaultPod(basename + "-pod")
+		pod.Spec.Containers[0].Resources = v1.ResourceRequirements{
+			Requests: v1.ResourceList{
+				v1.ResourceCPU: resource.MustParse(
+					strconv.FormatInt(podSize, 10) + "m"),
+			},
+		}
 
-			deployment := testutils.DefaultDeployment(basename+"-deployment", map[string]string{basename: "true"})
-			replicas := int32(podCount)
-			deployment.Spec.Replicas = &replicas
-			deployment.Spec.Template.Spec = pod.Spec
-			By("Create deployment ")
-			_, err = cs.Extensions().Deployments(ns.Name).Create(deployment)
-			Expect(err).NotTo(HaveOccurred())
+		deployment := testutils.DefaultDeployment(basename+"-deployment", map[string]string{basename: "true"})
+		replicas := int32(podCount)
+		deployment.Spec.Replicas = &replicas
+		deployment.Spec.Template.Spec = pod.Spec
+		By("Create deployment ")
+		_, err = cs.Extensions().Deployments(ns.Name).Create(deployment)
+		Expect(err).NotTo(HaveOccurred())
 
-			time.Sleep(10 * time.Second)
-			pods, _ := testutils.WaitListPods(cs, ns.Name)
-			for _, p := range pods.Items {
-				fmt.Printf(string(p.Status.Phase) + "\n")
-			}
+		time.Sleep(10 * time.Second)
+		pods, _ := testutils.WaitListPods(cs, ns.Name)
+		for _, p := range pods.Items {
+			fmt.Printf(string(p.Status.Phase) + "\n")
+		}
 
-			targetNodeCount := initNodeCount + 1
-			By(fmt.Sprintf("scaling up the node... Target node count: %v", targetNodeCount))
+		targetNodeCount := initNodeCount + 1
+		By(fmt.Sprintf("scaling up the node... Target node count: %v", targetNodeCount))
 
-			resultNodeCount, err := testutils.WaitAutoScaleNodes(cs, targetNodeCount)
-			Expect(err).NotTo(HaveOccurred())
-			By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
-			Expect(resultNodeCount).To(Equal(targetNodeCount))
+		resultNodeCount, err := testutils.WaitAutoScaleNodes(cs, targetNodeCount)
+		Expect(err).NotTo(HaveOccurred())
+		By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
+		Expect(resultNodeCount).To(Equal(targetNodeCount))
 
-			By("Down scaling")
-			By("Delete Pods by replic=0")
-			replicas = 0
-			deployment.Spec.Replicas = &replicas
-			_, err = cs.Extensions().Deployments(ns.Name).Update(deployment)
-			targetNodeCount = initNodeCount
-			resultNodeCount, err = testutils.WaitAutoScaleNodes(cs, targetNodeCount)
-			Expect(err).NotTo(HaveOccurred())
-			By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
-			Expect(resultNodeCount).To(Equal(targetNodeCount))
-		})
-	*/
+		fmt.Printf("start down scaling")
 
-	/*
-		It("create one new nodes, should delete the node automaticaly", func() {
-			By("creating one new nodes")
-			name := "k8s-agentpool-vmss-test-" + string(uuid.NewUUID())
-			node := &v1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: ns.Name,
-				},
-				Spec: v1.NodeSpec{
-					Unschedulable: false,
-				},
-				Status: v1.NodeStatus{
-					Conditions: []v1.NodeCondition{
-						{
-							Type:   "Ready",
-							Status: "True",
-						},
-					},
-				},
-			}
-			_, err := cs.CoreV1().Nodes().Create(node)
-			Expect(err).NotTo(HaveOccurred())
-
-			By("creating pods")
-			nodeCore := initCoreCount / int64(initNodeCount)
-			var podSize int64
-			podSize = 200
-			podCount := int(nodeCore * 1000 / podSize)
-
-			pod := testutils.DefaultPod(basename + "-pod")
-			pod.Spec.Containers[0].Resources = v1.ResourceRequirements{
-				Requests: v1.ResourceList{
-					v1.ResourceCPU: resource.MustParse(
-						strconv.FormatInt(podSize, 10) + "m"),
-				},
-			}
-
-			deployment := testutils.DefaultDeployment(basename+"-deployment", map[string]string{basename: "true"})
-			replicas := int32(podCount)
-			deployment.Spec.Replicas = &replicas
-			deployment.Spec.Template.Spec = pod.Spec
-			By("Create deployment ")
-			_, err = cs.Extensions().Deployments(ns.Name).Create(deployment)
-			Expect(err).NotTo(HaveOccurred())
-			time.Sleep(10 * time.Second)
-			pods, _ := testutils.WaitListPods(cs, ns.Name)
-			for _, p := range pods.Items {
-				fmt.Printf(string(p.Status.Phase) + "\n")
-			}
-
-			By("waiting for the new node's automatically deletion")
-			resultNodeCount, err := testutils.WaitAutoScaleNodes(cs, initNodeCount)
-			Expect(err).NotTo(HaveOccurred())
-			By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
-			Expect(resultNodeCount).To(Equal(initNodeCount))
-		})
-	*/
+		By("Down scaling")
+		By("Delete Pods by replic=0")
+		replicas = 0
+		deployment.Spec.Replicas = &replicas
+		_, err = cs.Extensions().Deployments(ns.Name).Update(deployment)
+		targetNodeCount = initNodeCount
+		resultNodeCount, err = testutils.WaitAutoScaleNodes(cs, targetNodeCount)
+		Expect(err).NotTo(HaveOccurred())
+		By(fmt.Sprintf("Complete scaling up... Result node count: %v", resultNodeCount))
+		Expect(resultNodeCount).To(Equal(targetNodeCount))
+	})
 
 })

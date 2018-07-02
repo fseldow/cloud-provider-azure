@@ -41,6 +41,8 @@ func findExistingKubeConfig() string {
 
 // GetClientSet obtains the client set interface from Kubeconfig
 func GetClientSet() (clientset.Interface, error) {
+	//TODO: It should implement only once
+	//rather than once per test
 	filename := findExistingKubeConfig()
 	//fmt.Printf(filename)
 	c := clientcmd.GetConfigFromFileOrDie(filename)

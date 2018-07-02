@@ -62,6 +62,14 @@ var _ = Describe("[Conformance]Service Connection ", func() {
 		Expect(err).NotTo(HaveOccurred())
 		testutils.Logf("Service created successfully")
 
+		defer func() {
+			By("Cleaning up")
+			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
+			Expect(err).NotTo(HaveOccurred())
+			err = cs.Extensions().Deployments(ns.Name).Delete(serviceName, nil)
+			Expect(err).NotTo(HaveOccurred())
+		}()
+
 		By("Wait for external DNS")
 		ExternalIP, err := testutils.WaitExternalDNS(cs, ns.Name, serviceName)
 		Expect(err).NotTo(HaveOccurred())
@@ -91,10 +99,6 @@ var _ = Describe("[Conformance]Service Connection ", func() {
 		if resp != nil {
 			resp.Body.Close()
 		}
-		By("Cleaning up")
-		err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
-		Expect(err).NotTo(HaveOccurred())
-		err = cs.Extensions().Deployments(ns.Name).Delete(serviceName, nil)
-		Expect(err).NotTo(HaveOccurred())
+
 	})
 })

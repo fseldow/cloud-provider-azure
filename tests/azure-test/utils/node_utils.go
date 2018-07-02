@@ -33,8 +33,8 @@ func WaitListSchedulableNodes(c clientset.Interface) (*v1.NodeList, error) {
 func WaitAutoScaleNodes(c clientset.Interface, targetNodeCount int) (int, error) {
 	var nodes *v1.NodeList
 	var err error
-	poll := 10 * time.Second
-	autoScaleTimeOut := 20 * time.Minute
+	poll := 20 * time.Second
+	autoScaleTimeOut := 30 * time.Minute
 	if wait.PollImmediate(poll, autoScaleTimeOut, func() (bool, error) {
 		nodes, err = c.CoreV1().Nodes().List(metav1.ListOptions{FieldSelector: fields.Set{
 			"spec.unschedulable": "false",
