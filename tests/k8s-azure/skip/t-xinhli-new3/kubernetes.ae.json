@@ -1,0 +1,47 @@
+{
+  "apiVersion": "vlabs",
+  "location": "eastus",
+  "properties": {
+    "orchestratorProfile": {
+      "orchestratorType": "Kubernetes",
+      "orchestratorRelease": "1.11",
+      "kubernetesConfig": {
+          "useCloudControllerManager": true,
+          "customCcmImage": "fseldow/azure-cloud-controller-manager:e065e27",
+          "customHyperkubeImage": "gcrio.azureedge.net/google_containers/hyperkube-amd64:v1.12.0-alpha.0",
+          "networkPolicy": "none",
+          "apiServerConfig": {
+            "--enable-admission-plugins": "NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota,AlwaysPullImages"
+          }
+      }
+    },
+    "masterProfile": {
+      "count": 1,
+      "dnsPrefix": "t-xinhli-new3",
+      "vmSize": "Standard_F2"
+    },
+    "agentPoolProfiles": [
+      {
+        "name": "agentpool1",
+        "count": 2,
+        "vmSize": "Standard_F2",
+        "availabilityProfile": "AvailabilitySet",
+        "storageProfile": "ManagedDisks"
+      }
+    ],
+    "linuxProfile": {
+      "adminUsername": "k8s-ci",
+      "ssh": {
+        "publicKeys": [
+          {
+            "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC6PDybLv4OUZ6nM+Drc+Cf5L3wtSjwTqxKgVbYsXMdK2wFkRDQYrJz8LmkbCDjo1Vd1SyixRM/btZRJT7miC0peXRXk5KvQj7onbYiliFoXaJ60MY1PRhJWxo1ujCtDrNlyzcSY7mTkBNFSATpyLUX0Vk0Sn/hS5rFo2kgcHZIjrzVpr/WnnBN55nDGu5idTw5b7eNOBURFEUleAwkAhFaYxm39LrPfzYeIhjn2Eb0Jw6eG81BtRPGGX0dRpXfZLqv7cqviSKOC0jIGExE7gwNpK0L9ejU+QJqdRhhlFIzvV6rQcV5x0OpNddF56GlwBG3zYUEHrCoUJoPc08WU9Un xinhe@cc-d8c47722-1894366494-k2k9b"
+          }
+        ]
+      }
+    },
+    "servicePrincipalProfile": {
+      "clientID": "085731df-d1f3-4cf2-be7f-19e3cc67c920",
+      "secret": "4789b964-7393-4066-928a-3092e9b285b8"
+    }
+  }
+}

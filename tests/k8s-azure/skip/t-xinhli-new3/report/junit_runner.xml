@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite failures="2" tests="5" time="849.59518484">
+    <testcase classname="e2e.go" name="test setup" time="6e-07"></testcase>
+    <testcase classname="e2e.go" name="kubectl version" time="0.275723337"></testcase>
+    <testcase classname="e2e.go" name="IsUp" time="0.23527859"></testcase>
+    <testcase classname="e2e.go" name="Test" time="849.073917633">
+        <failure>error during ./hack/ginkgo-e2e.sh --delete-namespace-on-failure=false --ginkgo.focus=default --report-dir=/home/t-xinhli/new-provider/cloud-provider-azure/t-xinhli-new3/report --disable-log-dump=true: exit status 1</failure>
+    </testcase>
+    <testcase classname="e2e.go" name="DumpClusterLogs" time="0.01014028">
+        <failure>error during ./cluster/log-dump/log-dump.sh /home/t-xinhli/new-provider/cloud-provider-azure/t-xinhli-new3/report: exit status 1</failure>
+    </testcase>
+    <testcase classname="e2e.go" name="Timeout" time="0"></testcase>
+</testsuite>
