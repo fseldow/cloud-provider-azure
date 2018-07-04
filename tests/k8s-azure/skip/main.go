@@ -1,14 +1,8 @@
 package main
 
-type Rankings struct {
-	Keyword  string
-	GetCount uint32
-	Engine   string
-	Locale   string
-	Mobile   bool
-}
+import "fmt"
 
 func main() {
-	result, _ := extractSkipKey("b")
-	generateSkipFile("./", result)
+	a, _ := readSkipFile("skip.log.json")
+	fmt.Println(len(a))
 }
