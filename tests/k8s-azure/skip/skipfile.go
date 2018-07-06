@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
@@ -78,7 +77,7 @@ func extractSkipKey(filename string) (result []Description, err error) {
 	return
 }
 
-func generateSkipFile(fileDir string) (err error) {
+func GenerateSkipFile(fileDir string) (err error) {
 	logfile := fileDir + "skip.lock.yaml"
 	skipfile := fileDir + "skip.txt"
 
@@ -86,9 +85,9 @@ func generateSkipFile(fileDir string) (err error) {
 	if err != nil {
 		return err
 	}
-	suiteJSON, _ := yaml.MarshalIndent(descrips, "", "  ")
+	suiteYaml, _ := yaml.Marshal(descrips)
 
-	ioutil.WriteFile(logfile, suiteJSON, 0644)
+	ioutil.WriteFile(logfile, suiteYaml, 0644)
 	var file *os.File
 	if file, err = os.Create(skipfile); err != nil {
 		return
@@ -107,13 +106,13 @@ func generateSkipFile(fileDir string) (err error) {
 }
 
 func readSkipFile(file string) (result []Description, err error) {
-	jsonFile, err := os.Open(file)
+	yamlFile, err := os.Open(file)
 	if err != nil {
 		return
 	}
-	defer jsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	json.Unmarshal(byteValue, &result)
+	defer yamlFile.Close()
+	byteValue, _ := ioutil.ReadAll(yamlFile)
+	yaml.Unmarshal(byteValue, &result)
 	return
 }
 
@@ -188,8 +187,8 @@ func newSkips(skipFromFile []Description, reportList []Report) (result []Descrip
 		}
 		result = append(result, temp)
 	}
-	suiteJSON, _ := json.MarshalIndent(result, "", "  ")
-	ioutil.WriteFile("test.json", suiteJSON, 0644)
+	suiteYaml, _ := yaml.Marshal(result)
+	ioutil.WriteFile("test.yaml", suiteYaml, 0644)
 	return
 }
 

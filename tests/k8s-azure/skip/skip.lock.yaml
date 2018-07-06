@@ -1,0 +1,224 @@
+- Comment: cases having special requirements does not support GetSigner, for ssh
+  Descirbe: '[sig-node] Mount propagation'
+  Subtest:
+  - Name: '[sig-node] Mount propagation'
+    Status: skip
+- Comment: cases having special requirements does not support GetSigner, for ssh
+  Descirbe: '[sig-network] Network should set TCP CLOSE_WAIT timeout'
+  Subtest:
+  - Name: '[sig-network] Network should set TCP CLOSE_WAIT timeout'
+    Status: skip
+- Comment: cases having special requirements does not support GetSigner, for ssh
+  Descirbe: '[sig-storage] PersistentVolumes-local'
+  Subtest:
+  - Name: '[sig-storage] PersistentVolumes-local'
+    Status: skip
+- Comment: cases having special requirements does not support GetSigner, for ssh
+  Descirbe: should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]
+  Subtest:
+  - Name: should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]
+    Status: skip
+- Comment: cases having special requirements does not support GetSigner, for ssh
+  Descirbe: should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]
+  Subtest:
+  - Name: should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]
+    Status: skip
+- Comment: ' Others'
+  Descirbe: '[sig-network] Services should be able to create a functioning NodePort
+    service # could not connect locally'
+  Subtest:
+  - Name: '[sig-network] Services should be able to create a functioning NodePort
+      service # could not connect locally'
+    Status: skip
+- Comment: ' Others'
+  Descirbe: '[sig-scheduling] SchedulerPredicates [Serial] validates MaxPods limit
+    number of pods that are allowed to run [Slow] # IsMasterNode function does not
+    apply'
+  Subtest:
+  - Name: '[sig-scheduling] SchedulerPredicates [Serial] validates MaxPods limit number
+      of pods that are allowed to run [Slow] # IsMasterNode function does not apply'
+    Status: skip
+- Comment: cases using dynamic PVC, pending on dynamic provision support
+  Descirbe: '[sig-storage] Dynamic Provisioning DynamicProvisioner Default should
+    create and delete default persistent volumes [Slow]'
+  Subtest:
+  - Name: '[sig-storage] Dynamic Provisioning DynamicProvisioner Default should create
+      and delete default persistent volumes [Slow]'
+    Status: skip
+- Comment: cases using dynamic PVC, pending on dynamic provision support
+  Descirbe: '[sig-storage] Dynamic Provisioning DynamicProvisioner should provision
+    storage with different parameters [Slow]'
+  Subtest:
+  - Name: '[sig-storage] Dynamic Provisioning DynamicProvisioner should provision
+      storage with different parameters [Slow]'
+    Status: skip
+- Comment: cases using dynamic PVC, pending on dynamic provision support
+  Descirbe: '[sig-storage] Dynamic Provisioning DynamicProvisioner should test that
+    deleting a claim before the volume is provisioned deletes the volume.'
+  Subtest:
+  - Name: '[sig-storage] Dynamic Provisioning DynamicProvisioner should test that
+      deleting a claim before the volume is provisioned deletes the volume.'
+    Status: skip
+- Comment: cases using dynamic PVC, pending on dynamic provision support
+  Descirbe: '[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic]
+    should adopt matching orphans and release non-matching pods'
+  Subtest:
+  - Name: '[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic]
+      should adopt matching orphans and release non-matching pods'
+    Status: skip
+- Comment: cases using dynamic PVC, pending on dynamic provision support
+  Descirbe: '[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic]
+    should not deadlock when a pod''s predecessor fails'
+  Subtest:
+  - Name: '[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic]
+      should not deadlock when a pod''s predecessor fails'
+    Status: skip
+- Comment: cases using dynamic PVC, pending on dynamic provision support
+  Descirbe: '[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic]
+    should provide basic identity'
+  Subtest:
+  - Name: '[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic]
+      should provide basic identity'
+    Status: skip
+- Comment: cases using dynamic PVC, pending on dynamic provision support
+  Descirbe: '[sig-storage] PVC Protection'
+  Subtest:
+  - Name: '[sig-storage] PVC Protection'
+    Status: skip
+- Comment: cases using dynamic PVC, pending on dynamic provision support
+  Descirbe: '[sig-storage] Dynamic Provisioning [k8s.io] GlusterDynamicProvisioner'
+  Subtest:
+  - Name: '[sig-storage] Dynamic Provisioning [k8s.io] GlusterDynamicProvisioner'
+    Status: skip
+- Comment: cases using 'TestUnderTemporaryNetworkFailure', which is not supported
+    for following listed, others are skipped by provider check
+  Descirbe: '[sig-apps] Network Partition [Disruptive] [Slow]'
+  Subtest:
+  - Name: '[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] [Job] should
+      create new pods when node is partitioned'
+    Status: skip
+  - Name: '[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] [ReplicationController]
+      should eagerly create replacement pod during network partition when termination
+      grace is non-zero'
+    Status: skip
+  - Name: '[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] [ReplicationController]
+      should recreate pods scheduled on the unreachable node AND allow scheduling
+      of pods on a node after it rejoins the cluster'
+    Status: skip
+- Comment: cases in a flaky manner'upstreamNameservers' config sometimes does not
+    populate in time
+  Descirbe: '[sig-network] DNS configMap'
+  Subtest:
+  - Name: '[sig-network] DNS configMap federations should be able to change federation
+      configuration [Slow][Serial]'
+    Status: skip
+  - Name: '[sig-network] DNS configMap nameserver Change stubDomain should be able
+      to change stubDomain configuration [Slow][Serial]'
+    Status: skip
+  - Name: '[sig-network] DNS configMap nameserver Forward external name lookup should
+      forward externalname lookup to upstream nameserver [Slow][Serial]'
+    Status: skip
+  - Name: '[sig-network] DNS configMap nameserver Forward PTR lookup should forward
+      PTR records lookup to upstream nameserver [Slow][Serial]'
+    Status: skip
+- Comment: cases for perf, rss memory setting varies
+  Descirbe: '[k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular
+    resource usage tracking resource tracking for 0 pods per node'
+  Subtest:
+  - Name: '[k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular
+      resource usage tracking resource tracking for 0 pods per node'
+    Status: skip
+- Comment: cases for perf, rss memory setting varies
+  Descirbe: '[k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular
+    resource usage tracking resource tracking for 100 pods per node'
+  Subtest:
+  - Name: '[k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular
+      resource usage tracking resource tracking for 100 pods per node'
+    Status: skip
+- Comment: cases depending on resource metrics https://github.com/Azure/acs-engine/issues/1936
+  Descirbe: 'Horizontal pod autoscaling (scale resource: CPU)'
+  Subtest:
+  - Name: '[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU)
+      [sig-autoscaling] [DisabledForLargeClusters] ReplicationController light Should
+      scale from 1 pod to 2 pods'
+    Status: skip
+  - Name: '[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU)
+      [sig-autoscaling] [DisabledForLargeClusters] ReplicationController light Should
+      scale from 2 pods to 1 pod'
+    Status: skip
+  - Name: '[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU)
+      [sig-autoscaling] [Serial] [Slow] Deployment Should scale from 1 pod to 3 pods
+      and from 3 to 5'
+    Status: skip
+  - Name: '[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU)
+      [sig-autoscaling] [Serial] [Slow] Deployment Should scale from 5 pods to 3 pods
+      and from 3 to 1'
+    Status: skip
+  - Name: '[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU)
+      [sig-autoscaling] [Serial] [Slow] ReplicaSet Should scale from 1 pod to 3 pods
+      and from 3 to 5'
+    Status: skip
+  - Name: '[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU)
+      [sig-autoscaling] [Serial] [Slow] ReplicaSet Should scale from 5 pods to 3 pods
+      and from 3 to 1'
+    Status: skip
+  - Name: '[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU)
+      [sig-autoscaling] [Serial] [Slow] ReplicationController Should scale from 1
+      pod to 3 pods and from 3 to 5 and verify decision stability'
+    Status: skip
+  - Name: '[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU)
+      [sig-autoscaling] [Serial] [Slow] ReplicationController Should scale from 5
+      pods to 3 pods and from 3 to 1 and verify decision stability'
+    Status: skip
+- Comment: case pending on kubelet config, https://github.com/Azure/acs-engine/issues/1882
+  Descirbe: '[sig-storage] Dynamic Provisioning DynamicProvisioner External should
+    let an external dynamic provisioner create and delete persistent volumes [Slow]'
+  Subtest:
+  - Name: '[sig-storage] Dynamic Provisioning DynamicProvisioner External should let
+      an external dynamic provisioner create and delete persistent volumes [Slow]'
+    Status: skip
+- Comment: cadvisor listening disabled, https://github.com/Azure/acs-engine/pull/2098#issuecomment-367907089
+  Descirbe: should proxy to cadvisor
+  Subtest:
+  - Name: should proxy to cadvisor
+    Status: skip
+- Comment: does not support containized kubelet https://github.com/kubernetes/kubernetes/issues/61456
+  Descirbe: '[sig-storage] Subpath [Volume type: hostPathSymlink]'
+  Subtest:
+  - Name: '[sig-storage] Subpath [Volume type: hostPathSymlink]'
+    Status: skip
+- Comment: does not support containized kubelet https://github.com/kubernetes/kubernetes/issues/61456
+  Descirbe: '[sig-storage] Subpath [Volume type: hostPath]'
+  Subtest:
+  - Name: '[sig-storage] Subpath [Volume type: hostPath]'
+    Status: skip
+- Comment: does not have mount.nfs https://github.com/Azure/acs-engine/issues/3022
+  Descirbe: '[sig-storage] PersistentVolumes NFS'
+  Subtest:
+  - Name: '[sig-storage] PersistentVolumes NFS'
+    Status: skip
+- Comment: does not have mount.nfs https://github.com/Azure/acs-engine/issues/3022
+  Descirbe: '[sig-storage] Volumes NFS'
+  Subtest:
+  - Name: '[sig-storage] Volumes NFS'
+    Status: skip
+- Comment: does not have mount.nfs https://github.com/Azure/acs-engine/issues/3022
+  Descirbe: '[sig-storage] Volume plugin streaming [Slow] NFS'
+  Subtest:
+  - Name: '[sig-storage] Volume plugin streaming [Slow] NFS'
+    Status: skip
+- Comment: Broken due to clean up https://github.com/kubernetes/kubernetes/pull/63489
+  Descirbe: ESIPP
+  Subtest:
+  - Name: '[sig-network] Services should have session affinity work for LoadBalancer
+      service with ESIPP on [Slow] [DisabledForLargeClusters]'
+    Status: skip
+  - Name: '[sig-network] Services should be able to switch session affinity for LoadBalancer
+      service with ESIPP on [Slow] [DisabledForLargeClusters]'
+    Status: skip
+  - Name: '[sig-network] Services should have session affinity work for LoadBalancer
+      service with ESIPP off [Slow] [DisabledForLargeClusters]'
+    Status: skip
+  - Name: '[sig-network] Services should be able to switch session affinity for LoadBalancer
+      service with ESIPP off [Slow] [DisabledForLargeClusters]'
+    Status: skip
