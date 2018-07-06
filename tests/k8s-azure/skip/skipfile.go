@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/ghodss/yaml"
 )
 
 const (
@@ -23,15 +25,15 @@ type SkipSuite struct {
 }
 
 type Report struct {
-	Name   string `json:"Name"`             // test name
-	Status string `json:"Status,omitempty"` // 1->pass, 0->skip, -1->fail
+	Name   string `json:"Name" yaml:"Name"` // test name
+	Status string `json:"Status,omitempty" yaml:"Status,omitempty"`
 }
 
 // SkipTest is the structure for skip.log.json
 type Description struct {
-	Name    string   `json:"Descirbe"`
-	Comment string   `json:"Comment"`
-	Subtest []Report `json:"Subtest"`
+	Name    string   `json:"Descirbe" yaml:"Description"`
+	Comment string   `json:"Comment" yaml:"Comment"`
+	Subtest []Report `json:"Subtest" yaml:"Subtest"`
 }
 
 func extractSkipKey(filename string) (result []Description, err error) {
@@ -77,14 +79,14 @@ func extractSkipKey(filename string) (result []Description, err error) {
 }
 
 func generateSkipFile(fileDir string) (err error) {
-	logfile := fileDir + "skip.log.json"
+	logfile := fileDir + "skip.lock.yaml"
 	skipfile := fileDir + "skip.txt"
 
 	descrips, err := extractSkipKey("../skip.txt")
 	if err != nil {
 		return err
 	}
-	suiteJSON, _ := json.MarshalIndent(descrips, "", "  ")
+	suiteJSON, _ := yaml.MarshalIndent(descrips, "", "  ")
 
 	ioutil.WriteFile(logfile, suiteJSON, 0644)
 	var file *os.File
