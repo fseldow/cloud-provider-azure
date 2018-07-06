@@ -1,56 +1,56 @@
-# cases having special requirement does not support GetSigner, for ss
+# cases having special requirements does not support GetSigner, for ssh
 [sig-node] Mount propagation
-# cases having special requirement does not support GetSigner, for ss
+# cases having special requirements does not support GetSigner, for ssh
 [sig-network] Network should set TCP CLOSE_WAIT timeout
-# cases having special requirement does not support GetSigner, for ss
+# cases having special requirements does not support GetSigner, for ssh
 [sig-storage] PersistentVolumes-local
-# cases having special requirement does not support GetSigner, for ss
+# cases having special requirements does not support GetSigner, for ssh
 should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]
-# cases having special requirement does not support GetSigner, for ss
+# cases having special requirements does not support GetSigner, for ssh
 should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]
-#  Other
+#  Others
 [sig-network] Services should be able to create a functioning NodePort service # could not connect locally
-#  Other
+#  Others
 [sig-scheduling] SchedulerPredicates [Serial] validates MaxPods limit number of pods that are allowed to run [Slow] # IsMasterNode function does not apply
-# cases using dynamic PVC, pending on dynamic provision suppor
+# cases using dynamic PVC, pending on dynamic provision support
 [sig-storage] Dynamic Provisioning DynamicProvisioner Default should create and delete default persistent volumes [Slow]
-# cases using dynamic PVC, pending on dynamic provision suppor
+# cases using dynamic PVC, pending on dynamic provision support
 [sig-storage] Dynamic Provisioning DynamicProvisioner should provision storage with different parameters [Slow]
-# cases using dynamic PVC, pending on dynamic provision suppor
+# cases using dynamic PVC, pending on dynamic provision support
 [sig-storage] Dynamic Provisioning DynamicProvisioner should test that deleting a claim before the volume is provisioned deletes the volume.
-# cases using dynamic PVC, pending on dynamic provision suppor
+# cases using dynamic PVC, pending on dynamic provision support
 [sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic] should adopt matching orphans and release non-matching pods
-# cases using dynamic PVC, pending on dynamic provision suppor
+# cases using dynamic PVC, pending on dynamic provision support
 [sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic] should not deadlock when a pod's predecessor fails
-# cases using dynamic PVC, pending on dynamic provision suppor
+# cases using dynamic PVC, pending on dynamic provision support
 [sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic] should provide basic identity
-# cases using dynamic PVC, pending on dynamic provision suppor
+# cases using dynamic PVC, pending on dynamic provision support
 [sig-storage] PVC Protection
-# cases using dynamic PVC, pending on dynamic provision suppor
+# cases using dynamic PVC, pending on dynamic provision support
 [sig-storage] Dynamic Provisioning [k8s.io] GlusterDynamicProvisioner
-# cases using 'TestUnderTemporaryNetworkFailure', which is not supported for following listed, others are skipped by provider chec
+# cases using 'TestUnderTemporaryNetworkFailure', which is not supported for following listed, others are skipped by provider check
 [sig-apps] Network Partition [Disruptive] [Slow]
-# cases in a flaky manne'upstreamNameservers' config sometimes does not populate in tim
+# cases in a flaky manner'upstreamNameservers' config sometimes does not populate in time
 [sig-network] DNS configMap
-# cases for perf, rss memory setting varie
+# cases for perf, rss memory setting varies
 [k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular resource usage tracking resource tracking for 0 pods per node
-# cases for perf, rss memory setting varie
+# cases for perf, rss memory setting varies
 [k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular resource usage tracking resource tracking for 100 pods per node
-# cases depending on resource metrics https://github.com/Azure/acs-engine/issues/193
+# cases depending on resource metrics https://github.com/Azure/acs-engine/issues/1936
 Horizontal pod autoscaling (scale resource: CPU)
-# case pending on kubelet config, https://github.com/Azure/acs-engine/issues/188
+# case pending on kubelet config, https://github.com/Azure/acs-engine/issues/1882
 [sig-storage] Dynamic Provisioning DynamicProvisioner External should let an external dynamic provisioner create and delete persistent volumes [Slow]
-# cadvisor listening disabled, https://github.com/Azure/acs-engine/pull/2098#issuecomment-36790708
+# cadvisor listening disabled, https://github.com/Azure/acs-engine/pull/2098#issuecomment-367907089
 should proxy to cadvisor
-# does not support containized kubelet https://github.com/kubernetes/kubernetes/issues/6145
+# does not support containized kubelet https://github.com/kubernetes/kubernetes/issues/61456
 [sig-storage] Subpath [Volume type: hostPathSymlink]
-# does not support containized kubelet https://github.com/kubernetes/kubernetes/issues/6145
+# does not support containized kubelet https://github.com/kubernetes/kubernetes/issues/61456
 [sig-storage] Subpath [Volume type: hostPath]
-# does not have mount.nfs https://github.com/Azure/acs-engine/issues/302
+# does not have mount.nfs https://github.com/Azure/acs-engine/issues/3022
 [sig-storage] PersistentVolumes NFS
-# does not have mount.nfs https://github.com/Azure/acs-engine/issues/302
+# does not have mount.nfs https://github.com/Azure/acs-engine/issues/3022
 [sig-storage] Volumes NFS
-# does not have mount.nfs https://github.com/Azure/acs-engine/issues/302
+# does not have mount.nfs https://github.com/Azure/acs-engine/issues/3022
 [sig-storage] Volume plugin streaming [Slow] NFS
-# Broken due to clean up https://github.com/kubernetes/kubernetes/pull/6348
+# Broken due to clean up https://github.com/kubernetes/kubernetes/pull/63489
 ESIPP

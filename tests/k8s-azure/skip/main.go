@@ -1,8 +1,9 @@
 package main
 
-import "fmt"
-
 func main() {
-	a, _ := readSkipFile("skip.log.json")
-	fmt.Println(len(a))
+	//generateSkipFile("./")
+	reportlist := GetReportList("./t-xinhli-new3/")
+	skipDescriptions, _ := readSkipFile("skip.log.json")
+	result_list := newSkips(skipDescriptions, reportlist)
+	newSkip, focuslist := checkTest(skipDescriptions, result_list, false)
 }

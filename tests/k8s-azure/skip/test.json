@@ -1,0 +1,871 @@
+[
+  {
+    "Descirbe": "[sig-node] Mount propagation",
+    "Comment": "cases having special requirements does not support GetSigner, for ssh",
+    "Subtest": [
+      {
+        "Name": "[k8s.io] [sig-node] Mount propagation should propagate mounts to the host",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-network] Network should set TCP CLOSE_WAIT timeout",
+    "Comment": "cases having special requirements does not support GetSigner, for ssh",
+    "Subtest": [
+      {
+        "Name": "[sig-network] Network should set TCP CLOSE_WAIT timeout",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] PersistentVolumes-local",
+    "Comment": "cases having special requirements does not support GetSigner, for ssh",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir] One pod requesting one prebound PVC should be able to mount volume and write from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir] Set fsGroup for local volume should set different fsGroup for second pod if first pod is deleted",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: blockfs] Set fsGroup for local volume should not set different fsGroups for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: tmpfs] One pod requesting one prebound PVC should be able to mount volume and read from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: blockfs] Two pods mounting a local volume at the same time should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir] Set fsGroup for local volume should set fsGroup for one pod",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: tmpfs] Set fsGroup for local volume should set fsGroup for one pod",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-bindmounted] Set fsGroup for local volume should not set different fsGroups for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  Local volume that cannot be mounted [Slow] should fail due to non-existent path",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link] Set fsGroup for local volume should set same fsGroup for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-bindmounted] Set fsGroup for local volume should set fsGroup for one pod",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link-bindmounted] Set fsGroup for local volume should not set different fsGroups for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: block] [Feature:BlockVolume] Set fsGroup for local volume should set fsGroup for one pod",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: gce-localssd-scsi-fs] [Serial] Set fsGroup for local volume should set fsGroup for one pod",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: gce-localssd-scsi-fs] [Serial] Set fsGroup for local volume should not set different fsGroups for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: gce-localssd-scsi-fs] [Serial] One pod requesting one prebound PVC should be able to mount volume and read from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: tmpfs] Set fsGroup for local volume should set different fsGroup for second pod if first pod is deleted",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: block] [Feature:BlockVolume] Set fsGroup for local volume should set different fsGroup for second pod if first pod is deleted",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: blockfs] One pod requesting one prebound PVC should be able to mount volume and write from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: gce-localssd-scsi-fs] [Serial] Set fsGroup for local volume should set different fsGroup for second pod if first pod is deleted",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link] Set fsGroup for local volume should not set different fsGroups for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: block] [Feature:BlockVolume] Set fsGroup for local volume should set same fsGroup for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir] Two pods mounting a local volume at the same time should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: tmpfs] Set fsGroup for local volume should not set different fsGroups for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link-bindmounted] Set fsGroup for local volume should set fsGroup for one pod",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link] Two pods mounting a local volume at the same time should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link] Set fsGroup for local volume should set fsGroup for one pod",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  Local volume that cannot be mounted [Slow] should fail due to wrong node",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link] One pod requesting one prebound PVC should be able to mount volume and read from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  Stress with local volume provisioner [Serial] should use be able to process many pods and reuse local volumes",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: blockfs] Set fsGroup for local volume should set fsGroup for one pod",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: block] [Feature:BlockVolume] One pod requesting one prebound PVC should be able to mount volume and read from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  Local volume provisioner [Serial] should not create local persistent volume for filesystem volume that was not bind mounted",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: blockfs] Two pods mounting a local volume one after the other should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link] Two pods mounting a local volume one after the other should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link-bindmounted] Two pods mounting a local volume one after the other should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir] Set fsGroup for local volume should set same fsGroup for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  Pod with node different from PV's NodeAffinity should fail scheduling due to different NodeAffinity",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-bindmounted] One pod requesting one prebound PVC should be able to mount volume and read from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-bindmounted] Two pods mounting a local volume one after the other should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: block] [Feature:BlockVolume] Two pods mounting a local volume at the same time should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: gce-localssd-scsi-fs] [Serial] Set fsGroup for local volume should set same fsGroup for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: block] [Feature:BlockVolume] One pod requesting one prebound PVC should be able to mount volume and write from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir] One pod requesting one prebound PVC should be able to mount volume and read from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  StatefulSet with pod anti-affinity should use volumes spread across nodes",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link] One pod requesting one prebound PVC should be able to mount volume and write from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  Pod with node different from PV's NodeAffinity should fail scheduling due to different NodeSelector",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  Local volume provisioner [Serial] should discover dynamicly created local persistent volume mountpoint in discovery directory",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-bindmounted] One pod requesting one prebound PVC should be able to mount volume and write from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link-bindmounted] Set fsGroup for local volume should set different fsGroup for second pod if first pod is deleted",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: tmpfs] Two pods mounting a local volume one after the other should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-bindmounted] Set fsGroup for local volume should set same fsGroup for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: gce-localssd-scsi-fs] [Serial] Two pods mounting a local volume at the same time should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: block] [Feature:BlockVolume] Two pods mounting a local volume one after the other should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  Local volume provisioner [Serial] should create and recreate local persistent volume",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: blockfs] Set fsGroup for local volume should set same fsGroup for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir] Set fsGroup for local volume should not set different fsGroups for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link-bindmounted] Two pods mounting a local volume at the same time should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link-bindmounted] Set fsGroup for local volume should set same fsGroup for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: tmpfs] Two pods mounting a local volume at the same time should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: blockfs] Set fsGroup for local volume should set different fsGroup for second pod if first pod is deleted",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: block] [Feature:BlockVolume] Set fsGroup for local volume should not set different fsGroups for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: tmpfs] One pod requesting one prebound PVC should be able to mount volume and write from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-bindmounted] Two pods mounting a local volume at the same time should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: tmpfs] Set fsGroup for local volume should set same fsGroup for two pods simultaneously",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: gce-localssd-scsi-fs] [Serial] Two pods mounting a local volume one after the other should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link-bindmounted] One pod requesting one prebound PVC should be able to mount volume and read from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: gce-localssd-scsi-fs] [Serial] One pod requesting one prebound PVC should be able to mount volume and write from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link] Set fsGroup for local volume should set different fsGroup for second pod if first pod is deleted",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-link-bindmounted] One pod requesting one prebound PVC should be able to mount volume and write from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: blockfs] One pod requesting one prebound PVC should be able to mount volume and read from pod1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir] Two pods mounting a local volume one after the other should be able to write from pod1 and read from pod2",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes-local  [Volume type: dir-bindmounted] Set fsGroup for local volume should set different fsGroup for second pod if first pod is deleted",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+    "Comment": "cases having special requirements does not support GetSigner, for ssh",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: nfsPVC] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: emptyDir] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: gcePDPartitioned] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: gluster] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: nfs] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: gcePDPVC] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+    "Comment": "cases having special requirements does not support GetSigner, for ssh",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Subpath [Volume type: emptyDir] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: gluster] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: nfsPVC] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: gcePDPVC] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: nfs] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: gcePDPartitioned] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-network] Services should be able to create a functioning NodePort service # could not connect locally",
+    "Comment": " Others",
+    "Subtest": []
+  },
+  {
+    "Descirbe": "[sig-scheduling] SchedulerPredicates [Serial] validates MaxPods limit number of pods that are allowed to run [Slow] # IsMasterNode function does not apply",
+    "Comment": " Others",
+    "Subtest": []
+  },
+  {
+    "Descirbe": "[sig-storage] Dynamic Provisioning DynamicProvisioner Default should create and delete default persistent volumes [Slow]",
+    "Comment": "cases using dynamic PVC, pending on dynamic provision support",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Dynamic Provisioning DynamicProvisioner Default should create and delete default persistent volumes [Slow]",
+        "Status": "fail"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] Dynamic Provisioning DynamicProvisioner should provision storage with different parameters [Slow]",
+    "Comment": "cases using dynamic PVC, pending on dynamic provision support",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Dynamic Provisioning DynamicProvisioner should provision storage with different parameters [Slow]",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] Dynamic Provisioning DynamicProvisioner should test that deleting a claim before the volume is provisioned deletes the volume.",
+    "Comment": "cases using dynamic PVC, pending on dynamic provision support",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Dynamic Provisioning DynamicProvisioner should test that deleting a claim before the volume is provisioned deletes the volume.",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic] should adopt matching orphans and release non-matching pods",
+    "Comment": "cases using dynamic PVC, pending on dynamic provision support",
+    "Subtest": [
+      {
+        "Name": "[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic] should adopt matching orphans and release non-matching pods",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic] should not deadlock when a pod's predecessor fails",
+    "Comment": "cases using dynamic PVC, pending on dynamic provision support",
+    "Subtest": [
+      {
+        "Name": "[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic] should not deadlock when a pod's predecessor fails",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic] should provide basic identity",
+    "Comment": "cases using dynamic PVC, pending on dynamic provision support",
+    "Subtest": [
+      {
+        "Name": "[sig-apps] StatefulSet [k8s.io] Basic StatefulSet functionality [StatefulSetBasic] should provide basic identity",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] PVC Protection",
+    "Comment": "cases using dynamic PVC, pending on dynamic provision support",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] PVC Protection Verify \"immediate\" deletion of a PVC that is not in active use by a pod",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PVC Protection Verify that scheduling of a pod that uses PVC that is being deleted fails and the pod becomes Unschedulable",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PVC Protection Verify that PVC in active use by a pod is not removed immediately",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] Dynamic Provisioning [k8s.io] GlusterDynamicProvisioner",
+    "Comment": "cases using dynamic PVC, pending on dynamic provision support",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Dynamic Provisioning [k8s.io] GlusterDynamicProvisioner should create and delete persistent volumes [fast]",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-apps] Network Partition [Disruptive] [Slow]",
+    "Comment": "cases using 'TestUnderTemporaryNetworkFailure', which is not supported for following listed, others are skipped by provider check",
+    "Subtest": [
+      {
+        "Name": "[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] Pods should be evicted from unready Node [Feature:TaintEviction] All pods on the unreachable node should be marked as NotReady upon the node turn NotReady AND all pods should be evicted after eviction timeout passes",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] [ReplicationController] should recreate pods scheduled on the unreachable node AND allow scheduling of pods on a node after it rejoins the cluster",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] [StatefulSet] should not reschedule stateful pods if there is a network partition [Slow] [Disruptive]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] [ReplicationController] should eagerly create replacement pod during network partition when termination grace is non-zero",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] [Job] should create new pods when node is partitioned",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] [StatefulSet] should come back up if node goes down [Slow] [Disruptive]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-apps] Network Partition [Disruptive] [Slow] [k8s.io] Pods should return to running and ready state after network partition is healed All pods on the unreachable node should be marked as NotReady upon the node turn NotReady AND all pods should be mark back to Ready when the node get back to Ready before pod eviction timeout",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-network] DNS configMap",
+    "Comment": "cases in a flaky manner'upstreamNameservers' config sometimes does not populate in time",
+    "Subtest": [
+      {
+        "Name": "[sig-network] DNS configMap nameserver Forward external name lookup should forward externalname lookup to upstream nameserver [Slow][Serial]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] DNS configMap federations should be able to change federation configuration [Slow][Serial]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] DNS configMap nameserver Forward PTR lookup should forward PTR records lookup to upstream nameserver [Slow][Serial]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] DNS configMap nameserver Change stubDomain should be able to change stubDomain configuration [Slow][Serial]",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular resource usage tracking resource tracking for 0 pods per node",
+    "Comment": "cases for perf, rss memory setting varies",
+    "Subtest": [
+      {
+        "Name": "[k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular resource usage tracking resource tracking for 0 pods per node",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular resource usage tracking resource tracking for 100 pods per node",
+    "Comment": "cases for perf, rss memory setting varies",
+    "Subtest": [
+      {
+        "Name": "[k8s.io] [sig-node] Kubelet [Serial] [Slow] [k8s.io] [sig-node] regular resource usage tracking resource tracking for 100 pods per node",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "Horizontal pod autoscaling (scale resource: CPU)",
+    "Comment": "cases depending on resource metrics https://github.com/Azure/acs-engine/issues/1936",
+    "Subtest": [
+      {
+        "Name": "[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU) [sig-autoscaling] ReplicationController light Should scale from 1 pod to 2 pods",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU) [sig-autoscaling] [Serial] [Slow] Deployment Should scale from 5 pods to 3 pods and from 3 to 1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU) [sig-autoscaling] [Serial] [Slow] ReplicaSet Should scale from 5 pods to 3 pods and from 3 to 1",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU) [sig-autoscaling] [Serial] [Slow] ReplicationController Should scale from 5 pods to 3 pods and from 3 to 1 and verify decision stability",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU) [sig-autoscaling] [Serial] [Slow] ReplicationController Should scale from 1 pod to 3 pods and from 3 to 5 and verify decision stability",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU) [sig-autoscaling] [Serial] [Slow] ReplicaSet Should scale from 1 pod to 3 pods and from 3 to 5",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU) [sig-autoscaling] [Serial] [Slow] Deployment Should scale from 1 pod to 3 pods and from 3 to 5",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-autoscaling] [HPA] Horizontal pod autoscaling (scale resource: CPU) [sig-autoscaling] ReplicationController light Should scale from 2 pods to 1 pod",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] Dynamic Provisioning DynamicProvisioner External should let an external dynamic provisioner create and delete persistent volumes [Slow]",
+    "Comment": "case pending on kubelet config, https://github.com/Azure/acs-engine/issues/1882",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Dynamic Provisioning DynamicProvisioner External should let an external dynamic provisioner create and delete persistent volumes [Slow]",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "should proxy to cadvisor",
+    "Comment": "cadvisor listening disabled, https://github.com/Azure/acs-engine/pull/2098#issuecomment-367907089",
+    "Subtest": []
+  },
+  {
+    "Descirbe": "[sig-storage] Subpath [Volume type: hostPathSymlink]",
+    "Comment": "does not support containized kubelet https://github.com/kubernetes/kubernetes/issues/61456",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support file as subpath",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should fail if non-existent subpath is outside the volume [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support restarting containers using file as subpath [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support existing single file",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support readOnly directory specified in the volumeMount",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should fail if subpath file is outside the volume [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support restarting containers using directory as subpath [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should fail for new directories when readOnly specified in the volumeSource",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should fail if subpath directory is outside the volume [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should fail if subpath with backstepping is outside the volume [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support readOnly file specified in the volumeMount",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support existing directories when readOnly specified in the volumeSource",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support non-existent path",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support creating multiple subpath from same volumes [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPathSymlink] should support existing directory",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] Subpath [Volume type: hostPath]",
+    "Comment": "does not support containized kubelet https://github.com/kubernetes/kubernetes/issues/61456",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support non-existent path",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should fail for new directories when readOnly specified in the volumeSource",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support readOnly file specified in the volumeMount",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should fail if subpath directory is outside the volume [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support existing directories when readOnly specified in the volumeSource",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support readOnly directory specified in the volumeMount",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support existing directory",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support file as subpath",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support existing single file",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should fail if subpath file is outside the volume [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should unmount if pod is force deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support restarting containers using file as subpath [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should fail if non-existent subpath is outside the volume [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should unmount if pod is gracefully deleted while kubelet is down [Disruptive][Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support restarting containers using directory as subpath [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should support creating multiple subpath from same volumes [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] Subpath [Volume type: hostPath] should fail if subpath with backstepping is outside the volume [Slow]",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] PersistentVolumes NFS",
+    "Comment": "does not have mount.nfs https://github.com/Azure/acs-engine/issues/3022",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] PersistentVolumes NFS with multiple PVs and PVCs all in same ns should create 3 PVs and 3 PVCs: test write access",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes NFS with Single PV - PVC pairs create a PVC and non-pre-bound PV: test write access",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes NFS with Single PV - PVC pairs create a PV and a pre-bound PVC: test write access",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes NFS with multiple PVs and PVCs all in same ns should create 2 PVs and 4 PVCs: test write access",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes NFS with multiple PVs and PVCs all in same ns should create 4 PVs and 2 PVCs: test write access [Slow]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes NFS with Single PV - PVC pairs create a PVC and a pre-bound PV: test write access",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes NFS when invoking the Recycle reclaim policy should test that a PV becomes Available and is clean after the PVC is deleted.",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-storage] PersistentVolumes NFS with Single PV - PVC pairs should create a non-pre-bound PV and PVC: test write access ",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] Volumes NFS",
+    "Comment": "does not have mount.nfs https://github.com/Azure/acs-engine/issues/3022",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Volumes NFS should be mountable",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "[sig-storage] Volume plugin streaming [Slow] NFS",
+    "Comment": "does not have mount.nfs https://github.com/Azure/acs-engine/issues/3022",
+    "Subtest": [
+      {
+        "Name": "[sig-storage] Volume plugin streaming [Slow] NFS should write files of various sizes, verify size, validate content",
+        "Status": "skip"
+      }
+    ]
+  },
+  {
+    "Descirbe": "ESIPP",
+    "Comment": "Broken due to clean up https://github.com/kubernetes/kubernetes/pull/63489",
+    "Subtest": [
+      {
+        "Name": "[sig-network] ESIPP [Slow] [DisabledForLargeClusters] should work for type=NodePort",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] ESIPP [Slow] [DisabledForLargeClusters] should only target nodes with endpoints",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] ESIPP [Slow] [DisabledForLargeClusters] should work from pods",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] Services should be able to switch session affinity for LoadBalancer service with ESIPP on [Slow] [DisabledForLargeClusters]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] ESIPP [Slow] [DisabledForLargeClusters] should work for type=LoadBalancer",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] Services should have session affinity work for LoadBalancer service with ESIPP off [Slow] [DisabledForLargeClusters]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] Services should have session affinity work for LoadBalancer service with ESIPP on [Slow] [DisabledForLargeClusters]",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] ESIPP [Slow] [DisabledForLargeClusters] should handle updates to ExternalTrafficPolicy field",
+        "Status": "skip"
+      },
+      {
+        "Name": "[sig-network] Services should be able to switch session affinity for LoadBalancer service with ESIPP off [Slow] [DisabledForLargeClusters]",
+        "Status": "skip"
+      }
+    ]
+  }
+]
