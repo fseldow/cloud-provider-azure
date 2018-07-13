@@ -22,57 +22,70 @@ import (
 	"time"
 
 	"k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	clientset "k8s.io/client-go/kubernetes"
 	testutils "k8s.io/cloud-provider-azure/tests/e2e/utils"
+	"k8s.io/kubernetes/pkg/cloudprovider/providers/azure"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Service Connection", func() {
+const (
+	nginxPort       = 80
+	nginxStatusCode = 200
+)
+
+var _ = Describe("Service with annotation", func() {
 	basename := "service"
-	serviceName := "dns-service"
+	serviceName := "annotation-test"
 
 	var cs clientset.Interface
 	var ns *v1.Namespace
-	var err error
-	var namespacesToDelete []*v1.Namespace
 
 	labels := map[string]string{
 		"app": serviceName,
 	}
 	ports := []v1.ServicePort{{
-		Port:       8080,
-		TargetPort: intstr.FromInt(8080),
+		Port:       nginxPort,
+		TargetPort: intstr.FromInt(nginxPort),
 	}}
 
 	BeforeEach(func() {
+		var err error
 		cs, err = testutils.GetClientSet()
 		Expect(err).NotTo(HaveOccurred())
 
-		ns, err = testutils.CreateTestingNS(basename, cs)
+		ns, err = testutils.CreateTestingNameSpace(basename, cs)
 		Expect(err).NotTo(HaveOccurred())
-		namespacesToDelete = append(namespacesToDelete, ns)
 	})
 
 	AfterEach(func() {
-		for _, nsToDel := range namespacesToDelete {
-			err = testutils.DeleteNS(cs, nsToDel.Name)
-			Expect(err).NotTo(HaveOccurred())
-		}
+		err := testutils.DeleteNameSpace(cs, ns.Name)
+		Expect(err).NotTo(HaveOccurred())
+
+		cs = nil
+		ns = nil
 	})
 
-	It("can connect via domain name", func() {
+	It("can be accessed by domain name", func() {
+		By("Create service")
+		serviceDomainNamePrefix := serviceName + string(uuid.NewUUID())
 		testutils.Logf("Creating deployment " + serviceName)
-		_, err = cs.Extensions().Deployments(ns.Name).Create(testutils.DefaultDeployment(serviceName, labels))
+		deployment := portDeployment(serviceName, labels)
+		_, err := cs.Extensions().Deployments(ns.Name).Create(deployment)
 		Expect(err).NotTo(HaveOccurred())
 
-		By("Create service")
-		testutils.Logf("Name " + serviceName + " with type LoadBalancer in namespace " + ns.Name)
-		_, err := testutils.CreateLoadBalancerService(cs, serviceName, labels, ns.Name, ports)
+		annotation := map[string]string{
+			azure.ServiceAnnotationDNSLabelName: serviceDomainNamePrefix,
+		}
+
+		_, err = createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
 		Expect(err).NotTo(HaveOccurred())
-		testutils.Logf("Service created successfully")
+		testutils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
 		defer func() {
 			By("Cleaning up")
@@ -82,22 +95,16 @@ var _ = Describe("Service Connection", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}()
 
-		By("Wait for external domain name")
-		serviceDomainName, err := testutils.WaitExternalDNS(cs, ns.Name, serviceName)
+		By("Waiting for service exposure")
+		err = testutils.WaitServiceExposure(cs, ns.Name, serviceName)
 		Expect(err).NotTo(HaveOccurred())
-
-		var resp *http.Response
-		defer func() {
-			if resp != nil {
-				resp.Body.Close()
-			}
-		}()
 
 		By("Validating External domain name")
 		var code int
+		serviceDomainName := testutils.GetServiceDomainName(serviceDomainNamePrefix)
+		url := fmt.Sprintf("http://%s:%v", serviceDomainName, ports[0].Port)
 		for i := 1; i <= 30; i++ {
-			url := fmt.Sprintf("http://%s:%v", serviceDomainName, ports[0].Port)
-			resp, err = http.Get(url)
+			resp, err := http.Get(url)
 			if err == nil {
 				defer func() {
 					if resp != nil {
@@ -105,16 +112,66 @@ var _ = Describe("Service Connection", func() {
 					}
 				}()
 				code = resp.StatusCode
-				if resp.StatusCode != 200 && i < 28 {
-					i = 28
-					continue
-				} else if resp.StatusCode == 200 {
+				if resp.StatusCode == nginxStatusCode {
 					break
 				}
 			}
 			time.Sleep(20 * time.Second)
 		}
 		Expect(err).NotTo(HaveOccurred())
-		Expect(code).To(Equal(200), "Fail to get response from the domain name")
+		Expect(code).To(Equal(nginxStatusCode), "Fail to get response from the domain name")
 	})
 })
+
+func createLoadBalancerService(c clientset.Interface, name string, annotation map[string]string, labels map[string]string, namespace string, ports []v1.ServicePort) (*v1.Service, error) {
+	service := v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Annotations: annotation,
+		},
+		Spec: v1.ServiceSpec{
+			Selector: labels,
+			Ports:    ports,
+			Type:     "LoadBalancer",
+		},
+	}
+	return c.CoreV1().Services(namespace).Create(&service)
+}
+
+// DefaultDeployment returns a defualt deplotment
+func portDeployment(name string, labels map[string]string) (result *v1beta1.Deployment) {
+	var replicas int32
+	replicas = 5
+	result = &v1beta1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Spec: v1beta1.DeploymentSpec{
+			Replicas: &replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: v1.PodSpec{
+					Hostname: name,
+					Containers: []v1.Container{
+						{
+							Name:            "test-app",
+							Image:           "nginx:1.15",
+							ImagePullPolicy: "Always",
+							Ports: []v1.ContainerPort{
+								{
+									ContainerPort: nginxPort,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	return
+}

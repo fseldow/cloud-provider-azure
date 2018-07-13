@@ -24,7 +24,6 @@ import (
 	"k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -32,18 +31,16 @@ import (
 )
 
 const (
-	DeleteNSTimeout   = 10 * time.Minute
-	Poll              = 2 * time.Second
-	SingleCallTimeout = 5 * time.Minute
+	deletionTimeout   = 10 * time.Minute
+	poll              = 2 * time.Second
+	singleCallTimeout = 5 * time.Minute
 
 	PodImage = "k8s.gcr.io/pause:3.1"
 )
 
 func findExistingKubeConfig() string {
-	defaultKubeConfig := "/etc/kubernetes/admin.conf"
-	// locations using DefaultClientConfigLoadingRules, but also consider `defaultKubeConfig`.
+	// locations using DefaultClientConfigLoadingRules
 	rules := clientcmd.NewDefaultClientConfigLoadingRules()
-	rules.Precedence = append(rules.Precedence, defaultKubeConfig)
 	return rules.GetDefaultFilename()
 }
 
@@ -71,25 +68,12 @@ func ExtractDNSPrefix() string {
 	return c.CurrentContext
 }
 
-// ExtractRegion obtains the cluster region
-func ExtractRegion() string {
+// extractSuffix obtains the server domain name suffix
+func extractSuffix() string {
 	c := obtainConfig()
 	prefix := ExtractDNSPrefix()
 	url := c.Clusters[prefix].Server
-	domain := strings.Split(url, ".")
-	if len(domain) < 4 {
-		return "NaN"
-	}
-	return domain[len(domain)-4]
-}
-
-// ExtractSuffix obtains the server domain name suffix
-func ExtractSuffix() string {
-	c := obtainConfig()
-	prefix := ExtractDNSPrefix()
-	url := c.Clusters[prefix].Server
-	domain := strings.Split(url, ".")
-	suffix := url[len(domain[0]):len(url)]
+	suffix := url[strings.Index(url, "."):len(url)]
 	return suffix
 }
 
@@ -100,27 +84,23 @@ func obtainConfig() *clientcmdapi.Config {
 	return c
 }
 
-//CreateTestingNS builds namespace for each test
+//CreateTestingNameSpace builds namespace for each test
 //baseName and labels determine name of the space
-func CreateTestingNS(baseName string, c clientset.Interface) (*v1.Namespace, error) {
+func CreateTestingNameSpace(baseName string, cs clientset.Interface) (*v1.Namespace, error) {
 	Logf("Creating a test namespace")
-	labels := map[string]string{}
-	var runID = uuid.NewUUID()
-	labels["e2e-run"] = string(runID)
 
 	namespaceObj := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("e2e-tests-%v-", baseName),
 			Namespace:    "",
-			Labels:       labels,
 		},
 		Status: v1.NamespaceStatus{},
 	}
 	// Be robust about making the namespace creation call.
 	var got *v1.Namespace
-	if err := wait.PollImmediate(Poll, 30*time.Second, func() (bool, error) {
+	if err := wait.PollImmediate(poll, 30*time.Second, func() (bool, error) {
 		var err error
-		got, err = c.CoreV1().Namespaces().Create(namespaceObj)
+		got, err = cs.CoreV1().Namespaces().Create(namespaceObj)
 		if err != nil {
 			if isRetryableAPIError(err) {
 				return false, nil
@@ -134,16 +114,16 @@ func CreateTestingNS(baseName string, c clientset.Interface) (*v1.Namespace, err
 	return got, nil
 }
 
-// DeleteNS deletes the provided namespace, waits for it to be completely deleted, and then checks
+// DeleteNameSpace deletes the provided namespace, waits for it to be completely deleted, and then checks
 // whether there are any pods remaining in a non-terminating state.
-func DeleteNS(c clientset.Interface, namespace string) error {
+func DeleteNameSpace(cs clientset.Interface, namespace string) error {
 	Logf("Deleting namespace %s", namespace)
-	if err := c.CoreV1().Namespaces().Delete(namespace, nil); err != nil {
+	if err := cs.CoreV1().Namespaces().Delete(namespace, nil); err != nil {
 		return err
 	}
 	// wait for namespace to delete or timeout.
-	err := wait.PollImmediate(2*time.Second, DeleteNSTimeout, func() (bool, error) {
-		if _, err := c.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{}); err != nil {
+	err := wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
+		if _, err := cs.CoreV1().Namespaces().Get(namespace, metav1.GetOptions{}); err != nil {
 			if apierrs.IsNotFound(err) {
 				return true, nil
 			}
@@ -156,8 +136,26 @@ func DeleteNS(c clientset.Interface, namespace string) error {
 	return err
 }
 
-// StringInSlice check if string in a list
-func StringInSlice(s string, list []string) bool {
+func waitListNamespace(cs clientset.Interface) (*v1.NamespaceList, error) {
+	var list *v1.NamespaceList
+	if err := wait.PollImmediate(poll, 30*time.Second, func() (bool, error) {
+		var err error
+		list, err = cs.CoreV1().Namespaces().List(metav1.ListOptions{})
+		if err != nil {
+			if isRetryableAPIError(err) {
+				return false, nil
+			}
+			return false, err
+		}
+		return true, nil
+	}); err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+// stringInSlice check if string in a list
+func stringInSlice(s string, list []string) bool {
 	for _, item := range list {
 		if item == s {
 			return true

@@ -18,6 +18,7 @@ package utils
 
 import (
 	"k8s.io/api/core/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
@@ -27,30 +28,34 @@ const (
 	pauseImage = "k8s.gcr.io/pause:3.1"
 )
 
-//DefaultPod returns a default pod representation
-func DefaultPod(name string) (result *v1.Pod) {
-	result = &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Spec: v1.PodSpec{
-			Containers: []v1.Container{
-				{
-					Name:  "container",
-					Image: pauseImage,
-				},
-			},
-		},
+// WaitDeletePods deletes the pods
+func WaitDeletePods(cs clientset.Interface, ns string) error {
+	pods, err := waitListPods(cs, ns)
+	if err != nil {
+		return err
 	}
-	return
+	for _, p := range pods.Items {
+		cs.CoreV1().Pods(ns).Delete(p.Name, nil)
+	}
+	for _, p := range pods.Items {
+		if err := wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
+			if _, err := cs.CoreV1().Pods(ns).Get(p.Name, metav1.GetOptions{}); err != nil {
+				return apierrs.IsNotFound(err), nil
+			}
+			return false, nil
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// WaitListPods is a wapper around listing pods
-func WaitListPods(c clientset.Interface, ns string) (*v1.PodList, error) {
+// waitListPods is a wapper around listing pods
+func waitListPods(cs clientset.Interface, ns string) (*v1.PodList, error) {
 	var pods *v1.PodList
 	var err error
-	if wait.PollImmediate(Poll, SingleCallTimeout, func() (bool, error) {
-		pods, err = c.CoreV1().Pods(ns).List(metav1.ListOptions{})
+	if wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
+		pods, err = cs.CoreV1().Pods(ns).List(metav1.ListOptions{})
 		if err != nil {
 			if isRetryableAPIError(err) {
 				return false, nil
