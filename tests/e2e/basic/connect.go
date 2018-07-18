@@ -94,6 +94,9 @@ func main() {
 	//validateInternalLoadBalancer(cs, ns.Name, "aaa")
 	rg := testutils.GetResourceGroup()
 	b, _ := a.List(context.Background(), rg)
-	c := *b.Values()[0].Name
+	c := *b.Values()[0].AddressSpace
+	d := *b.Values()[0].Subnets
+	e := *d[0].AddressPrefix
 	fmt.Print(c)
+	fmt.Print(e)
 }
