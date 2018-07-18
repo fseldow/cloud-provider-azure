@@ -156,7 +156,7 @@ var _ = Describe("Service with annotation", func() {
 
 		annotation := map[string]string{
 			azure.ServiceAnnotationLoadBalancerInternal:       "true",
-			azure.ServiceAnnotationLoadBalancerInternalSubnet: "10.240.0.200",
+			azure.ServiceAnnotationLoadBalancerInternalSubnet: "10.240.0.0",
 		}
 
 		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
@@ -199,8 +199,8 @@ func createLoadBalancerService(c clientset.Interface, name string, annotation ma
 	return c.CoreV1().Services(namespace).Create(&service)
 }
 
-// createDeployment returns a defualt deplotment
-func createDeployment(name string, labels map[string]string) (result *v1beta1.Deployment) {
+// DefaultDeployment returns a defualt deplotment
+func portDeployment(name string, labels map[string]string) (result *v1beta1.Deployment) {
 	var replicas int32
 	replicas = 5
 	result = &v1beta1.Deployment{
