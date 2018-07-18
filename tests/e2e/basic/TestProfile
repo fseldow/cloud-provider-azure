@@ -1,0 +1,13 @@
+# Azure tenant id
+export K8S_AZURE_TENANTID="72f988bf-86f1-41af-91ab-2d7cd011db47"
+# Azure subscription id
+export K8S_AZURE_SUBSID="c4528d9e-c99a-48bb-b12d-fde2176a43b8"
+# Azure service principal id
+export K8S_AZURE_SPID="085731df-d1f3-4cf2-be7f-19e3cc67c920"
+# Azure service principal secret
+export K8S_AZURE_SPSEC="4789b964-7393-4066-928a-3092e9b285b8"
+# SSH public key to be deployed to cluster
+export K8S_AZURE_SSHPUB="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC6PDybLv4OUZ6nM+Drc+Cf5L3wtSjwTqxKgVbYsXMdK2wFkRDQYrJz8LmkbCDjo1Vd1SyixRM/btZRJT7miC0peXRXk5KvQj7onbYiliFoXaJ60MY1PRhJWxo1ujCtDrNlyzcSY7mTkBNFSATpyLUX0Vk0Sn/hS5rFo2kgcHZIjrzVpr/WnnBN55nDGu5idTw5b7eNOBURFEUleAwkAhFaYxm39LrPfzYeIhjn2Eb0Jw6eG81BtRPGGX0dRpXfZLqv7cqviSKOC0jIGExE7gwNpK0L9ejU+QJqdRhhlFIzvV6rQcV5x0OpNddF56GlwBG3zYUEHrCoUJoPc08WU9Un xinhe@cc-d8c47722-1894366494-k2k9b"
+# Azure location for the testing cluster
+export K8S_AZURE_LOCATION="eastus"
+~

@@ -28,7 +28,7 @@ const (
 	pauseImage = "k8s.gcr.io/pause:3.1"
 )
 
-// WaitDeletePods deletes the pods
+// WaitDeletePods deletes all pods in the namespace
 func WaitDeletePods(cs clientset.Interface, ns string) error {
 	pods, err := waitListPods(cs, ns)
 	if err != nil {
@@ -38,16 +38,22 @@ func WaitDeletePods(cs clientset.Interface, ns string) error {
 		cs.CoreV1().Pods(ns).Delete(p.Name, nil)
 	}
 	for _, p := range pods.Items {
-		if err := wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
-			if _, err := cs.CoreV1().Pods(ns).Get(p.Name, metav1.GetOptions{}); err != nil {
-				return apierrs.IsNotFound(err), nil
-			}
-			return false, nil
-		}); err != nil {
+		err = WaitDeletePod(cs, ns, p.Name)
+		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// WaitDeletePod deletes a single pod
+func WaitDeletePod(cs clientset.Interface, ns string, podName string) error {
+	return wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
+		if _, err := cs.CoreV1().Pods(ns).Get(podName, metav1.GetOptions{}); err != nil {
+			return apierrs.IsNotFound(err), nil
+		}
+		return false, nil
+	})
 }
 
 // waitListPods is a wapper around listing pods

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <testsuite tests="5" failures="0" time="1908.8847103">
+      <testcase name="Service with annotation can be accessed by domain name" classname="Cloud provider Azure e2e suite" time="137.6516394"></testcase>
+      <testcase name="Service with annotation can be bound to an internal load balancer" classname="Cloud provider Azure e2e suite" time="1684.0834226"></testcase>
+      <testcase name="Service with annotation can specify which subnet the internal load balancer should be bound to" classname="Cloud provider Azure e2e suite" time="39.7174863"></testcase>
+      <testcase name="Service with annotation should be bound to the load balancer from any available set with minimum rules in auto mode" classname="Cloud provider Azure e2e suite" time="23.7150901"></testcase>
+      <testcase name="Service with annotation should be bound to the load balancer among specific sets with minimum rules in {name1},{name2} mode" classname="Cloud provider Azure e2e suite" time="23.7150826"></testcase>
+  </testsuite>

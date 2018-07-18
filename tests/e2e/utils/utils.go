@@ -18,12 +18,15 @@ package utils
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 
 	"k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	utilnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -34,6 +37,8 @@ const (
 	deletionTimeout   = 10 * time.Minute
 	poll              = 2 * time.Second
 	singleCallTimeout = 5 * time.Minute
+
+	subscriptionEnv = "K8S_AZURE_SUBSID"
 )
 
 func findExistingKubeConfig() string {
@@ -160,4 +165,47 @@ func stringInSlice(s string, list []string) bool {
 		}
 	}
 	return false
+}
+
+func isRetryableAPIError(err error) bool {
+	// These errors may indicate a transient error that we can retry in tests.
+	if apierrs.IsInternalError(err) || apierrs.IsTimeout(err) || apierrs.IsServerTimeout(err) ||
+		apierrs.IsTooManyRequests(err) || utilnet.IsProbableEOF(err) || utilnet.IsConnectionReset(err) {
+		return true
+	}
+	// If the error sends the Retry-After header, we respect it as an explicit confirmation we should retry.
+	if _, shouldRetry := apierrs.SuggestsClientDelay(err); shouldRetry {
+		return true
+	}
+	return false
+}
+
+// JudgeRetryable is the external function of isRetryableAPIError
+func JudgeRetryable(err error) bool {
+	return isRetryableAPIError(err)
+}
+
+func getSubscriptionID() (string, error) {
+	if os.Getenv(subscriptionEnv) != "" {
+		return os.Getenv(subscriptionEnv), nil
+	}
+	// try to source TestProfile in root directory
+	cmd := exec.Command("source", "TestProfile")
+	err := cmd.Run()
+	if err != nil {
+		return "", err
+	}
+	if os.Getenv(subscriptionEnv) != "" {
+		return os.Getenv(subscriptionEnv), nil
+	}
+	return "", fmt.Errorf("Cannot find subsription in TestProfile")
+}
+
+// GetResourceGroup get RG name which is same of cluster name as definited in k8s-azure
+func GetResourceGroup() string {
+	return ExtractDNSPrefix()
+}
+
+func ObtainTestClient() (*TestClient, error) {
+	return NewDefaultTestClient()
 }
