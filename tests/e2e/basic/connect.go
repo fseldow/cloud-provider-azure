@@ -88,15 +88,23 @@ func validateInternalLoadBalancer(c clientset.Interface, ns string, url string) 
 }
 
 func main() {
+	aa, bb, _ := testutils.SubnetString2intArray("10.0.0.10/24")
+	fmt.Print(aa, bb)
 	a, _ := testutils.ObtainTestClient()
 	//cs, _ := testutils.GetClientSet()
 	//ns, _ := testutils.CreateTestingNameSpace("service", cs)
 	//validateInternalLoadBalancer(cs, ns.Name, "aaa")
 	rg := testutils.GetResourceGroup()
-	b, _ := a.List(context.Background(), rg)
-	c := *b.Values()[0].AddressSpace
+	b, _ := a.VNetClient.List(context.Background(), rg)
+	c := b.Values()[0]
 	d := *b.Values()[0].Subnets
 	e := *d[0].AddressPrefix
+	subname := "test"
+	err := testutils.CreateNewSubnet(*a, rg, c, subname)
+	b2, _ := a.VNetClient.List(context.Background(), rg)
+	t := *b2.Values()[0].Subnets
 	fmt.Print(c)
 	fmt.Print(e)
+	fmt.Print(err)
+	fmt.Print(t)
 }

@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"time"
 
+	aznetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -156,7 +157,7 @@ var _ = Describe("Service with annotation", func() {
 
 		annotation := map[string]string{
 			azure.ServiceAnnotationLoadBalancerInternal:       "true",
-			azure.ServiceAnnotationLoadBalancerInternalSubnet: "10.240.0.0",
+			azure.ServiceAnnotationLoadBalancerInternalSubnet: "test",
 		}
 
 		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
@@ -305,4 +306,18 @@ func validateInternalLoadBalancer(c clientset.Interface, ns string, url string) 
 		return publicFlag && internalFlag, nil
 	})
 	return err
+}
+
+func selectSubnet() (*aznetwork.Subnet, error) {
+	vNetList, err := testutils.WaitGetVirtualNetworkList()
+	if err != nil {
+		return nil, err
+	}
+
+	// Assume there is only one cluster in one resource group
+	if len(vNetList.Values()) != 1 {
+		return nil, fmt.Errorf("Found no or more than 1 virtual network in resource group same as cluster name")
+	}
+
+	return nil, nil
 }

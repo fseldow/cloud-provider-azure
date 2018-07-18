@@ -206,6 +206,11 @@ func GetResourceGroup() string {
 	return ExtractDNSPrefix()
 }
 
+// ObtainTestClient obtains the azure network client from environment azure configs
 func ObtainTestClient() (*TestClient, error) {
-	return NewDefaultTestClient()
+	tc, err := NewDefaultTestClient()
+	if err == nil && tc == nil {
+		return nil, fmt.Errorf("Null pointer for testClient")
+	}
+	return tc, err
 }

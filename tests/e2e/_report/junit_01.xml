@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="3" failures="1" time="886.787643">
-      <testcase name="Service with annotation can specify which subnet the internal load balancer should be bound to" classname="Cloud provider Azure e2e suite" time="626.3410093">
-          <failure type="Failure">C:/Users/t-xinhli/Documents/t-xinhli/go/src/k8s.io/cloud-provider-azure/tests/e2e/network/service_annotations.go:153&#xA;Expected error:&#xA;    &lt;*errors.errorString | 0xc04249aa60&gt;: {&#xA;        s: &#34;Cannot find Ingress&#34;,&#xA;    }&#xA;    Cannot find Ingress&#xA;not to have occurred&#xA;C:/Users/t-xinhli/Documents/t-xinhli/go/src/k8s.io/cloud-provider-azure/tests/e2e/network/service_annotations.go:172</failure>
-          <system-out>Jul 18 15:23:01.548: INFO: Creating a kubernetes client&#xA;Jul 18 15:23:01.557: INFO: Creating a test namespace&#xA;Jul 18 15:23:02.875: INFO: Creating deployment annotation-test&#xA;�[1mSTEP�[0m: Obtain VNet property&#xA;�[1mSTEP�[0m: Create service&#xA;�[1mSTEP�[0m: Waiting for service exposure&#xA;�[1mSTEP�[0m: Cleaning up&#xA;Jul 18 15:33:05.026: INFO: Deleting namespace e2e-tests-service-ssftm&#xA;</system-out>
-      </testcase>
-      <testcase name="Service with annotation should be bound to the load balancer from any available set with minimum rules in auto mode" classname="Cloud provider Azure e2e suite" time="23.7782818"></testcase>
+  <testsuite tests="3" failures="0" time="161.3747385">
+      <testcase name="Service with annotation can specify which subnet the internal load balancer should be bound to" classname="Cloud provider Azure e2e suite" time="85.93725"></testcase>
+      <testcase name="Service with annotation should be bound to the load balancer from any available set with minimum rules in auto mode" classname="Cloud provider Azure e2e suite" time="51.7163796"></testcase>
+      <testcase name="Service with annotation should be bound to the load balancer among specific sets with minimum rules in {name1},{name2} mode" classname="Cloud provider Azure e2e suite" time="23.7201094"></testcase>
   </testsuite>

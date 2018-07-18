@@ -20,7 +20,7 @@ import (
 	"os"
 	"strings"
 
-	azureNetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	aznetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	testauth "k8s.io/cloud-provider-azure/tests/e2e/auth"
@@ -32,22 +32,27 @@ const (
 
 // TestClient configs Azure specific clients
 type TestClient struct {
-	Subscription string
-	azureNetwork.VirtualNetworksClient
+	Subscription  string
+	VNetClient    aznetwork.VirtualNetworksClient
+	SubnetsClient aznetwork.SubnetsClient
 }
 
 // NewDefaultTestClient makes a new TestClient
 func NewDefaultTestClient() (*TestClient, error) {
 	authconfig := testauth.AzureAuthConfigFromTestProfile()
-	c := &TestClient{
-		Subscription:          authconfig.SubscriptionID,
-		VirtualNetworksClient: azureNetwork.NewVirtualNetworksClient(authconfig.SubscriptionID),
-	}
 	servicePrincipleToken, err := testauth.GetServicePrincipalToken(authconfig, parseEnvFromLocation())
 	if err != nil {
-		return c, err
+		return nil, err
 	}
-	c.Authorizer = autorest.NewBearerAuthorizer(servicePrincipleToken)
+	baseClient := aznetwork.NewWithBaseURI(parseEnvFromLocation().TokenAudience, authconfig.SubscriptionID)
+	baseClient.Authorizer = autorest.NewBearerAuthorizer(servicePrincipleToken)
+
+	c := &TestClient{
+		Subscription:  authconfig.SubscriptionID,
+		VNetClient:    aznetwork.VirtualNetworksClient{BaseClient: baseClient},
+		SubnetsClient: aznetwork.SubnetsClient{BaseClient: baseClient},
+	}
+
 	return c, nil
 }
 
