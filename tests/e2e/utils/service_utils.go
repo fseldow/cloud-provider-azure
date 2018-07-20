@@ -50,9 +50,11 @@ func WaitServiceExposure(cs clientset.Interface, namespace string, name string) 
 
 		IngressList := service.Status.LoadBalancer.Ingress
 		if IngressList == nil || len(IngressList) == 0 {
-			err = fmt.Errorf("Cannot find Ingress")
+			err = fmt.Errorf("Cannot find Ingress in limited time")
+			Logf("Fail to gind ingress, retry it in 10 seconds")
 			return false, nil
 		}
+		Logf("Exposure successfully")
 		return true, nil
 	}) != nil {
 		return "", err

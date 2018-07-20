@@ -48,6 +48,10 @@ func WaitDeletePods(cs clientset.Interface, ns string) error {
 
 // WaitDeletePod deletes a single pod
 func WaitDeletePod(cs clientset.Interface, ns string, podName string) error {
+	err := cs.CoreV1().Pods(ns).Delete(podName, nil)
+	if err != nil {
+		return err
+	}
 	return wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
 		if _, err := cs.CoreV1().Pods(ns).Get(podName, metav1.GetOptions{}); err != nil {
 			return apierrs.IsNotFound(err), nil

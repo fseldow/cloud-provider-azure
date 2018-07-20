@@ -131,7 +131,7 @@ func DeleteNameSpace(cs clientset.Interface, namespace string) error {
 				return true, nil
 			}
 			Logf("Error while waiting for namespace to be terminated: %v", err)
-			return false, nil
+			return false, err
 		}
 		return false, nil
 	})
@@ -206,11 +206,11 @@ func GetResourceGroup() string {
 	return ExtractDNSPrefix()
 }
 
-// ObtainTestClient obtains the azure network client from environment azure configs
-func ObtainTestClient() (*TestClient, error) {
-	tc, err := NewDefaultTestClient()
+// ObtainAzureTestClient obtains the azure network client from environment azure configs
+func ObtainAzureTestClient() (*AzureTestClient, error) {
+	tc, err := NewDefaultAzureTestClient()
 	if err == nil && tc == nil {
-		return nil, fmt.Errorf("Null pointer for testClient")
+		return nil, fmt.Errorf("Null pointer for AzuretestClient")
 	}
 	return tc, err
 }

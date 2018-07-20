@@ -19,6 +19,8 @@ package network
 import (
 	"fmt"
 	"net/http"
+	"os/exec"
+	"strings"
 	"time"
 
 	aznetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
@@ -127,7 +129,8 @@ var _ = Describe("Service with annotation", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(code).To(Equal(nginxStatusCode), "Fail to get response from the domain name")
 		})
-
+	*/
+	/*
 		It("can be bound to an internal load balancer", func() {
 			annotation := map[string]string{
 				azure.ServiceAnnotationLoadBalancerInternal: "true",
@@ -147,33 +150,50 @@ var _ = Describe("Service with annotation", func() {
 			ip, err := testutils.WaitServiceExposure(cs, ns.Name, serviceName)
 			Expect(err).NotTo(HaveOccurred())
 
+			By("Validating whether the load balancer is internal")
 			url := fmt.Sprintf("%s:%v", ip, ports[0].Port)
 			err = validateInternalLoadBalancer(cs, ns.Name, url)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	*/
 	It("can specify which subnet the internal load balancer should be bound to", func() {
-		By("Obtain VNet property")
-		By("Create service")
+		By("creating environment")
+		subnetName := "lb-test" // + string(uuid.NewUUID())
+
+		azureTestClient, err := testutils.ObtainAzureTestClient()
+		Expect(err).NotTo(HaveOccurred())
+		vNet, err := getVNet(azureTestClient)
+		Expect(err).NotTo(HaveOccurred())
+		newSubnetPrefix, err := getAvailableSubnet(vNet)
+		Expect(err).NotTo(HaveOccurred())
+
+		testutils.CreateNewSubnet(azureTestClient, vNet, &subnetName, &newSubnetPrefix)
 
 		annotation := map[string]string{
 			azure.ServiceAnnotationLoadBalancerInternal:       "true",
-			azure.ServiceAnnotationLoadBalancerInternalSubnet: "test",
+			azure.ServiceAnnotationLoadBalancerInternalSubnet: subnetName,
 		}
 
-		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		_, err = createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
 		Expect(err).NotTo(HaveOccurred())
 		defer func() {
 			By("Cleaning up")
 			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
 			Expect(err).NotTo(HaveOccurred())
+			// TODO
+			// Delete load balancer before removing subnet
+			//_, err := azureTestClient.SubnetsClient.Delete(context.Background(), testutils.GetResourceGroup(), *vNet.Name, subnetName)
+			//Expect(err).NotTo(HaveOccurred())
 		}()
 
 		By("Waiting for service exposure")
 		ip, err := testutils.WaitServiceExposure(cs, ns.Name, serviceName)
 		Expect(err).NotTo(HaveOccurred())
+		testutils.Logf("Get Externel IP: %s", ip)
 
-		url := fmt.Sprintf("%s:%v", ip, ports[0].Port)
-		testutils.Logf(url)
+		By("Validating external ip in target subnet")
+		err = validateIPinPrefix(ip, newSubnetPrefix)
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should be bound to the load balancer from any available set with minimum rules in auto mode", func() {
@@ -238,11 +258,13 @@ func portDeployment(name string, labels map[string]string) (result *v1beta1.Depl
 	return
 }
 
-// As an ILB, two stuff require validationi:
-// 1. external IP cannot be public
+// As an ILB, two features require validation:
+// 1. external IP cannot be public accessible
 // 2. internal source can access to it
 func validateInternalLoadBalancer(c clientset.Interface, ns string, url string) error {
 	// create a pod to access to the service
+	testutils.Logf("Validating external IP not be public and internal accessible")
+	testutils.Logf("Create a front pod to connect to service")
 	podName := "front-pod"
 	pod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -253,12 +275,12 @@ func validateInternalLoadBalancer(c clientset.Interface, ns string, url string) 
 			Containers: []v1.Container{
 				{
 					Name:            "test-app",
-					Image:           "nginx:1.15",
+					Image:           "appropriate/curl",
 					ImagePullPolicy: "Always",
 					Command: []string{
 						"/bin/sh",
-						"code=0",
-						"while [ $code != 200 ]; do code=$(curl -s -o /dev/null -w \"%{http_code}\" " + url + "); echo $code; sleep 1; done",
+						"-c",
+						"code=0; while [ $code != 200 ]; do code=$(curl -s -o /dev/null -w \"%{http_code}\" " + url + "); sleep 1; done; echo $code",
 					},
 					Ports: []v1.ContainerPort{
 						{
@@ -274,50 +296,60 @@ func validateInternalLoadBalancer(c clientset.Interface, ns string, url string) 
 		return err
 	}
 	defer func() {
+		testutils.Logf("Deleting front pod")
 		err = testutils.WaitDeletePod(c, ns, podName)
 	}()
 
+	// publicFlag shows whether pulic accessible test ends
+	// internalFlag shows whether internal accessible test ends
+	testutils.Logf("Try two kinds of calling simulately")
 	var publicFlag, internalFlag bool
-	wait.PollImmediate(callPoll, callTimeout, func() (bool, error) {
+	err = wait.PollImmediate(callPoll, callTimeout, func() (bool, error) {
 		if !publicFlag {
+			testutils.Logf("Still testing public access")
 			resp, err := http.Get(url)
-			defer func() {
-				if resp != nil {
-					resp.Body.Close()
-				}
-			}()
+			testutils.Logf("deleteResp")
+			if resp != nil {
+				resp.Body.Close()
+			}
 			if err == nil {
 				return false, fmt.Errorf("The load balancer is unexpectly external")
 			}
 			if !testutils.JudgeRetryable(err) {
+				testutils.Logf("Public access test passed")
 				publicFlag = true
 			}
 		}
 
 		if !internalFlag {
-			// get pod command result
-			request := c.CoreV1().Pods(ns).GetLogs(pod.Name, nil)
-			s, _ := request.Stream()
-			fmt.Println(s)
-			if s != nil {
+			// get log pod result
+			testutils.Logf("Still testing internal access")
+			out, _ := exec.Command("kubectl", "logs", podName, "--namespace", ns).Output()
+			if strings.Contains(fmt.Sprintf("%s", out), "200") {
+				testutils.Logf("Internal access test passed")
 				internalFlag = true
 			}
 		}
+		if publicFlag && internalFlag {
+			testutils.Logf("Both tests passed!")
+		}
 		return publicFlag && internalFlag, nil
 	})
+	testutils.Logf("validation finished")
+
 	return err
 }
 
-func selectSubnet() (*aznetwork.Subnet, error) {
-	vNetList, err := testutils.WaitGetVirtualNetworkList()
+func getVNet(azureTestClient *testutils.AzureTestClient) (ret aznetwork.VirtualNetwork, err error) {
+	vNetList, err := testutils.WaitGetVirtualNetworkList(azureTestClient)
 	if err != nil {
-		return nil, err
+		return
 	}
-
 	// Assume there is only one cluster in one resource group
 	if len(vNetList.Values()) != 1 {
-		return nil, fmt.Errorf("Found no or more than 1 virtual network in resource group same as cluster name")
+		err = fmt.Errorf("Found no or more than 1 virtual network in resource group same as cluster name")
+		return
 	}
-
-	return nil, nil
+	ret = vNetList.Values()[0]
+	return
 }

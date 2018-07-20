@@ -30,15 +30,13 @@ const (
 	clusterLocationEnv = "K8S_AZURE_LOCATION"
 )
 
-// TestClient configs Azure specific clients
-type TestClient struct {
-	Subscription  string
-	VNetClient    aznetwork.VirtualNetworksClient
-	SubnetsClient aznetwork.SubnetsClient
+// AzureTestClient configs Azure specific clients
+type AzureTestClient struct {
+	aznetwork.BaseClient
 }
 
-// NewDefaultTestClient makes a new TestClient
-func NewDefaultTestClient() (*TestClient, error) {
+// NewDefaultAzureTestClient makes a new AzureTestClient
+func NewDefaultAzureTestClient() (*AzureTestClient, error) {
 	authconfig := testauth.AzureAuthConfigFromTestProfile()
 	servicePrincipleToken, err := testauth.GetServicePrincipalToken(authconfig, parseEnvFromLocation())
 	if err != nil {
@@ -47,10 +45,8 @@ func NewDefaultTestClient() (*TestClient, error) {
 	baseClient := aznetwork.NewWithBaseURI(parseEnvFromLocation().TokenAudience, authconfig.SubscriptionID)
 	baseClient.Authorizer = autorest.NewBearerAuthorizer(servicePrincipleToken)
 
-	c := &TestClient{
-		Subscription:  authconfig.SubscriptionID,
-		VNetClient:    aznetwork.VirtualNetworksClient{BaseClient: baseClient},
-		SubnetsClient: aznetwork.SubnetsClient{BaseClient: baseClient},
+	c := &AzureTestClient{
+		BaseClient: baseClient,
 	}
 
 	return c, nil
@@ -64,7 +60,6 @@ func parseEnvFromLocation() *azure.Environment {
 		return &azure.GermanCloud
 	} else if strings.Contains(location, "gov") {
 		return &azure.USGovernmentCloud
-	} else {
-		return &azure.PublicCloud
 	}
+	return &azure.PublicCloud
 }
