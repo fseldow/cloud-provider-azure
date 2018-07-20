@@ -18,8 +18,6 @@ package utils
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -37,8 +35,6 @@ const (
 	deletionTimeout   = 10 * time.Minute
 	poll              = 2 * time.Second
 	singleCallTimeout = 5 * time.Minute
-
-	subscriptionEnv = "K8S_AZURE_SUBSID"
 )
 
 func findExistingKubeConfig() string {
@@ -183,22 +179,6 @@ func isRetryableAPIError(err error) bool {
 // JudgeRetryable is the external function of isRetryableAPIError
 func JudgeRetryable(err error) bool {
 	return isRetryableAPIError(err)
-}
-
-func getSubscriptionID() (string, error) {
-	if os.Getenv(subscriptionEnv) != "" {
-		return os.Getenv(subscriptionEnv), nil
-	}
-	// try to source TestProfile in root directory
-	cmd := exec.Command("source", "TestProfile")
-	err := cmd.Run()
-	if err != nil {
-		return "", err
-	}
-	if os.Getenv(subscriptionEnv) != "" {
-		return os.Getenv(subscriptionEnv), nil
-	}
-	return "", fmt.Errorf("Cannot find subsription in TestProfile")
 }
 
 // GetResourceGroup get RG name which is same of cluster name as definited in k8s-azure

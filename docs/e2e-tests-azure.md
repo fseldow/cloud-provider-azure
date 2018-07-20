@@ -14,6 +14,14 @@ Here provides some E2E tests only specific to Azure provider.
 
 ## Run Test
 
+### Set Global Environment
+- Create or already have TestProfile
+
+    refer to step 2 of [e2e-tests.md]
+    (https://github.com/kubernetes/cloud-provider-azure/blob/master/docs/e2e-tests.md)
+
+- Run ```source <TestProfile>```
+
 ### Have installed ginkgo
 - Run ```ginkgo ./tests/e2e/ ```
 

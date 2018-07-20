@@ -69,7 +69,7 @@ var _ = Describe("Service with annotation", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		testutils.Logf("Creating deployment " + serviceName)
-		deployment := portDeployment(serviceName, labels)
+		deployment := defaultDeployment(serviceName, labels)
 		_, err = cs.Extensions().Deployments(ns.Name).Create(deployment)
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -158,6 +158,9 @@ var _ = Describe("Service with annotation", func() {
 
 	It("can specify which subnet the internal load balancer should be bound to", func() {
 		By("creating environment")
+		// TODO
+		// Test will fail if we add string(uuid.NewUUID()) to the subnetName
+		// subnet will build, but cannot exposure
 		subnetName := "lb-subnet" // + string(uuid.NewUUID())
 
 		azureTestClient, err := testutils.ObtainAzureTestClient()
@@ -219,8 +222,9 @@ func createLoadBalancerService(c clientset.Interface, name string, annotation ma
 	return c.CoreV1().Services(namespace).Create(&service)
 }
 
-// DefaultDeployment returns a defualt deplotment
-func portDeployment(name string, labels map[string]string) (result *v1beta1.Deployment) {
+// defaultDeployment returns a default deployment
+// running nginx image which exposes port 80
+func defaultDeployment(name string, labels map[string]string) (result *v1beta1.Deployment) {
 	var replicas int32
 	replicas = 5
 	result = &v1beta1.Deployment{
