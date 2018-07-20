@@ -35,4 +35,15 @@ func CreateNewSubnet(azureTestClient *AzureTestClient, vnet aznetwork.VirtualNet
 	return err
 }
 
-//func waitGetLoadBalancerRuleList(azureTestClient *AzureTestClient)
+// WaitDeleteSubnet tries to delete a subnet in 5 minutes
+func WaitDeleteSubnet(azureTestClient *AzureTestClient, vnetName string, subnetName string) error {
+	subnetClient := aznetwork.SubnetsClient{BaseClient: azureTestClient.BaseClient}
+	err := wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
+		_, err := subnetClient.Delete(context.Background(), GetResourceGroup(), vnetName, subnetName)
+		if err != nil {
+			return false, nil
+		}
+		return true, nil
+	})
+	return err
+}

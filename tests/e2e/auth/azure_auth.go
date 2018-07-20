@@ -49,6 +49,7 @@ func GetServicePrincipalToken(config *AzureAuthConfig, env *azure.Environment) (
 	return nil, fmt.Errorf("No credentials provided for AAD application %s", config.AADClientID)
 }
 
+// AzureAuthConfigFromTestProfile obtains azure config from Environment
 func AzureAuthConfigFromTestProfile() *AzureAuthConfig {
 	c := &AzureAuthConfig{
 		TenantID:        os.Getenv(tenantIDEnv),

@@ -28,6 +28,7 @@ import (
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	testutils "k8s.io/cloud-provider-azure/tests/e2e/utils"
@@ -83,82 +84,81 @@ var _ = Describe("Service with annotation", func() {
 		cs = nil
 		ns = nil
 	})
-	/*
-		It("can be accessed by domain name", func() {
-			By("Create service")
-			serviceDomainNamePrefix := serviceName + string(uuid.NewUUID())
 
-			annotation := map[string]string{
-				azure.ServiceAnnotationDNSLabelName: serviceDomainNamePrefix,
-			}
+	It("can be accessed by domain name", func() {
+		By("Create service")
+		serviceDomainNamePrefix := serviceName + string(uuid.NewUUID())
 
-			_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
-			Expect(err).NotTo(HaveOccurred())
-			testutils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
+		annotation := map[string]string{
+			azure.ServiceAnnotationDNSLabelName: serviceDomainNamePrefix,
+		}
 
-			defer func() {
-				By("Cleaning up")
-				err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
-				Expect(err).NotTo(HaveOccurred())
+		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		Expect(err).NotTo(HaveOccurred())
+		testutils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
-			}()
-
-			By("Waiting for service exposure")
-			_, err = testutils.WaitServiceExposure(cs, ns.Name, serviceName)
+		defer func() {
+			By("Cleaning up")
+			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Validating External domain name")
-			var code int
-			serviceDomainName := testutils.GetServiceDomainName(serviceDomainNamePrefix)
-			url := fmt.Sprintf("http://%s:%v", serviceDomainName, ports[0].Port)
-			for i := 1; i <= 30; i++ {
-				resp, err := http.Get(url)
-				if err == nil {
-					defer func() {
-						if resp != nil {
-							resp.Body.Close()
-						}
-					}()
-					code = resp.StatusCode
-					if resp.StatusCode == nginxStatusCode {
-						break
+		}()
+
+		By("Waiting for service exposure")
+		_, err = testutils.WaitServiceExposure(cs, ns.Name, serviceName)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Validating External domain name")
+		var code int
+		serviceDomainName := testutils.GetServiceDomainName(serviceDomainNamePrefix)
+		url := fmt.Sprintf("http://%s:%v", serviceDomainName, ports[0].Port)
+		for i := 1; i <= 30; i++ {
+			resp, err := http.Get(url)
+			if err == nil {
+				defer func() {
+					if resp != nil {
+						resp.Body.Close()
 					}
+				}()
+				code = resp.StatusCode
+				if resp.StatusCode == nginxStatusCode {
+					break
 				}
-				time.Sleep(20 * time.Second)
 			}
-			Expect(err).NotTo(HaveOccurred())
-			Expect(code).To(Equal(nginxStatusCode), "Fail to get response from the domain name")
-		})
-	*/
-	/*
-		It("can be bound to an internal load balancer", func() {
-			annotation := map[string]string{
-				azure.ServiceAnnotationLoadBalancerInternal: "true",
-			}
+			time.Sleep(20 * time.Second)
+		}
+		Expect(err).NotTo(HaveOccurred())
+		Expect(code).To(Equal(nginxStatusCode), "Fail to get response from the domain name")
+	})
 
-			_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
-			Expect(err).NotTo(HaveOccurred())
-			testutils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
+	It("can be bound to an internal load balancer", func() {
+		annotation := map[string]string{
+			azure.ServiceAnnotationLoadBalancerInternal: "true",
+		}
 
-			defer func() {
-				By("Cleaning up")
-				err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
-				Expect(err).NotTo(HaveOccurred())
-			}()
+		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		Expect(err).NotTo(HaveOccurred())
+		testutils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
-			By("Waiting for service exposure")
-			ip, err := testutils.WaitServiceExposure(cs, ns.Name, serviceName)
+		defer func() {
+			By("Cleaning up")
+			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
 			Expect(err).NotTo(HaveOccurred())
+		}()
 
-			By("Validating whether the load balancer is internal")
-			url := fmt.Sprintf("%s:%v", ip, ports[0].Port)
-			err = validateInternalLoadBalancer(cs, ns.Name, url)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	*/
+		By("Waiting for service exposure")
+		ip, err := testutils.WaitServiceExposure(cs, ns.Name, serviceName)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Validating whether the load balancer is internal")
+		url := fmt.Sprintf("%s:%v", ip, ports[0].Port)
+		err = validateInternalLoadBalancer(cs, ns.Name, url)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	It("can specify which subnet the internal load balancer should be bound to", func() {
 		By("creating environment")
-		subnetName := "lb-test" // + string(uuid.NewUUID())
+		subnetName := "lb-subnet" // + string(uuid.NewUUID())
 
 		azureTestClient, err := testutils.ObtainAzureTestClient()
 		Expect(err).NotTo(HaveOccurred())
@@ -180,10 +180,9 @@ var _ = Describe("Service with annotation", func() {
 			By("Cleaning up")
 			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
 			Expect(err).NotTo(HaveOccurred())
-			// TODO
-			// Delete load balancer before removing subnet
-			//_, err := azureTestClient.SubnetsClient.Delete(context.Background(), testutils.GetResourceGroup(), *vNet.Name, subnetName)
-			//Expect(err).NotTo(HaveOccurred())
+
+			err = testutils.WaitDeleteSubnet(azureTestClient, *vNet.Name, subnetName)
+			Expect(err).NotTo(HaveOccurred())
 		}()
 
 		By("Waiting for service exposure")
