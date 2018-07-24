@@ -61,3 +61,35 @@ func WaitServiceExposure(cs clientset.Interface, namespace string, name string) 
 	}
 	return service.Status.LoadBalancer.Ingress[0].IP, nil
 }
+
+// WaitUpdateServiceExposure returns ip of ingress
+func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name string, targetIP string) (string, error) {
+	var service *v1.Service
+	var err error
+
+	if wait.PollImmediate(10*time.Second, 10*time.Minute, func() (bool, error) {
+		service, err = cs.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
+		if err != nil {
+			if isRetryableAPIError(err) {
+				return false, nil
+			}
+			return false, err
+		}
+
+		IngressList := service.Status.LoadBalancer.Ingress
+		if IngressList == nil || len(IngressList) == 0 {
+			err = fmt.Errorf("Cannot find Ingress in limited time")
+			Logf("Fail to gind ingress, retry it in 10 seconds")
+			return false, nil
+		}
+		if targetIP != service.Status.LoadBalancer.Ingress[0].IP {
+			Logf("Unmatched external IP")
+			return false, nil
+		}
+		Logf("Exposure successfully")
+		return true, nil
+	}) != nil {
+		return "", err
+	}
+	return service.Status.LoadBalancer.Ingress[0].IP, nil
+}
