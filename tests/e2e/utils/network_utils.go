@@ -47,3 +47,23 @@ func WaitDeleteSubnet(azureTestClient *AzureTestClient, vnetName string, subnetN
 	})
 	return err
 }
+
+// WaitCreatePIP waits to create a public ip resource
+func WaitCreatePIP(azureTestClient *AzureTestClient, ipName string, ipParamete aznetwork.PublicIPAddress) error {
+	pipClient := aznetwork.PublicIPAddressesClient{BaseClient: azureTestClient.BaseClient}
+	_, err := pipClient.CreateOrUpdate(context.Background(), GetResourceGroup(), ipName, ipParamete)
+	if err != nil {
+		return err
+	}
+	err = wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
+		_, err = pipClient.Get(context.Background(), GetResourceGroup(), "PIP", "eastus.cloudapp.azure.com")
+		if err != nil {
+			if !isRetryableAPIError(err) {
+				return false, err
+			}
+			return false, nil
+		}
+		return true, nil
+	})
+	return err
+}

@@ -67,7 +67,7 @@ func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name st
 	var service *v1.Service
 	var err error
 
-	if wait.PollImmediate(10*time.Second, 10*time.Minute, func() (bool, error) {
+	if wait.PollImmediate(10*time.Second, 20*time.Minute, func() (bool, error) {
 		service, err = cs.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
 			if isRetryableAPIError(err) {
@@ -82,7 +82,7 @@ func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name st
 			Logf("Fail to gind ingress, retry it in 10 seconds")
 			return false, nil
 		}
-		if targetIP != service.Status.LoadBalancer.Ingress[0].IP {
+		if targetIP == service.Status.LoadBalancer.Ingress[0].IP {
 			Logf("Unmatched external IP")
 			return false, nil
 		}

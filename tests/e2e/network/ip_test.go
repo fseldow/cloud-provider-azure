@@ -1,6 +1,7 @@
 package network
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,4 +22,11 @@ func TestUsable(t *testing.T) {
 	vlist, _ := testutils.WaitGetVirtualNetworkList(tc)
 	vNet := vlist.Values()[0]
 	getAvailableSubnet(vNet)
+}
+
+func TestPIPCreation(t *testing.T) {
+	para := defaultPublicIPAddress()
+	tc, _ := testutils.ObtainAzureTestClient()
+	err := testutils.WaitCreatePIP(tc, "PIP-test", para)
+	fmt.Print(err)
 }
