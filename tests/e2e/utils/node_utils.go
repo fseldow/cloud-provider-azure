@@ -24,7 +24,6 @@ import (
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	utilnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 )
@@ -32,19 +31,6 @@ import (
 const (
 	nodeLabelRole = "kubernetes.io/role"
 )
-
-func isRetryableAPIError(err error) bool {
-	// These errors may indicate a transient error that we can retry in tests.
-	if apierrs.IsInternalError(err) || apierrs.IsTimeout(err) || apierrs.IsServerTimeout(err) ||
-		apierrs.IsTooManyRequests(err) || utilnet.IsProbableEOF(err) || utilnet.IsConnectionReset(err) {
-		return true
-	}
-	// If the error sends the Retry-After header, we respect it as an explicit confirmation we should retry.
-	if _, shouldRetry := apierrs.SuggestsClientDelay(err); shouldRetry {
-		return true
-	}
-	return false
-}
 
 // GetAgentNodes obtians the list of agent nodes
 func GetAgentNodes(cs clientset.Interface) ([]v1.Node, error) {
