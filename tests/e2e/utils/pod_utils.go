@@ -35,9 +35,6 @@ func WaitDeletePods(cs clientset.Interface, ns string) error {
 		return err
 	}
 	for _, p := range pods.Items {
-		cs.CoreV1().Pods(ns).Delete(p.Name, nil)
-	}
-	for _, p := range pods.Items {
 		err = WaitDeletePod(cs, ns, p.Name)
 		if err != nil {
 			return err
@@ -67,7 +64,7 @@ func waitListPods(cs clientset.Interface, ns string) (*v1.PodList, error) {
 	if wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
 		pods, err = cs.CoreV1().Pods(ns).List(metav1.ListOptions{})
 		if err != nil {
-			if isRetryableAPIError(err) {
+			if IsRetryableAPIError(err) {
 				return false, nil
 			}
 			return false, err

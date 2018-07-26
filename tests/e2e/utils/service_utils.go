@@ -42,7 +42,7 @@ func WaitServiceExposure(cs clientset.Interface, namespace string, name string) 
 	if wait.PollImmediate(10*time.Second, 10*time.Minute, func() (bool, error) {
 		service, err = cs.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
-			if isRetryableAPIError(err) {
+			if IsRetryableAPIError(err) {
 				return false, nil
 			}
 			return false, err
@@ -51,7 +51,7 @@ func WaitServiceExposure(cs clientset.Interface, namespace string, name string) 
 		IngressList := service.Status.LoadBalancer.Ingress
 		if IngressList == nil || len(IngressList) == 0 {
 			err = fmt.Errorf("Cannot find Ingress in limited time")
-			Logf("Fail to gind ingress, retry it in 10 seconds")
+			Logf("Fail to find ingress, retry it in 10 seconds")
 			return false, nil
 		}
 		Logf("Exposure successfully")

@@ -18,8 +18,6 @@ package utils
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -37,8 +35,6 @@ const (
 	deletionTimeout   = 10 * time.Minute
 	poll              = 2 * time.Second
 	singleCallTimeout = 5 * time.Minute
-
-	subscriptionEnv = "K8S_AZURE_SUBSID"
 )
 
 func findExistingKubeConfig() string {
@@ -105,7 +101,7 @@ func CreateTestingNameSpace(baseName string, cs clientset.Interface) (*v1.Namesp
 		var err error
 		got, err = cs.CoreV1().Namespaces().Create(namespaceObj)
 		if err != nil {
-			if isRetryableAPIError(err) {
+			if IsRetryableAPIError(err) {
 				return false, nil
 			}
 			return false, err
@@ -131,7 +127,9 @@ func DeleteNameSpace(cs clientset.Interface, namespace string) error {
 				return true, nil
 			}
 			Logf("Error while waiting for namespace to be terminated: %v", err)
-			return false, err
+			if !IsRetryableAPIError(err) {
+				return false, err
+			}
 		}
 		return false, nil
 	})
@@ -145,7 +143,7 @@ func waitListNamespace(cs clientset.Interface) (*v1.NamespaceList, error) {
 		var err error
 		list, err = cs.CoreV1().Namespaces().List(metav1.ListOptions{})
 		if err != nil {
-			if isRetryableAPIError(err) {
+			if IsRetryableAPIError(err) {
 				return false, nil
 			}
 			return false, err
@@ -167,7 +165,8 @@ func stringInSlice(s string, list []string) bool {
 	return false
 }
 
-func isRetryableAPIError(err error) bool {
+// IsRetryableAPIError will judge whether an error retrable or not
+func IsRetryableAPIError(err error) bool {
 	// These errors may indicate a transient error that we can retry in tests.
 	if apierrs.IsInternalError(err) || apierrs.IsTimeout(err) || apierrs.IsServerTimeout(err) ||
 		apierrs.IsTooManyRequests(err) || utilnet.IsProbableEOF(err) || utilnet.IsConnectionReset(err) {
@@ -180,37 +179,7 @@ func isRetryableAPIError(err error) bool {
 	return false
 }
 
-// JudgeRetryable is the external function of isRetryableAPIError
-func JudgeRetryable(err error) bool {
-	return isRetryableAPIError(err)
-}
-
-func getSubscriptionID() (string, error) {
-	if os.Getenv(subscriptionEnv) != "" {
-		return os.Getenv(subscriptionEnv), nil
-	}
-	// try to source TestProfile in root directory
-	cmd := exec.Command("source", "TestProfile")
-	err := cmd.Run()
-	if err != nil {
-		return "", err
-	}
-	if os.Getenv(subscriptionEnv) != "" {
-		return os.Getenv(subscriptionEnv), nil
-	}
-	return "", fmt.Errorf("Cannot find subsription in TestProfile")
-}
-
 // GetResourceGroup get RG name which is same of cluster name as definited in k8s-azure
 func GetResourceGroup() string {
 	return ExtractDNSPrefix()
-}
-
-// ObtainAzureTestClient obtains the azure network client from environment azure configs
-func ObtainAzureTestClient() (*AzureTestClient, error) {
-	tc, err := NewDefaultAzureTestClient()
-	if err == nil && tc == nil {
-		return nil, fmt.Errorf("Null pointer for AzuretestClient")
-	}
-	return tc, err
 }

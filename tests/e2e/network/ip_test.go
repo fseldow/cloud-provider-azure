@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	testutils "k8s.io/cloud-provider-azure/tests/e2e/utils"
+	utils "k8s.io/cloud-provider-azure/tests/e2e/utils"
 )
 
 func TestValidation(t *testing.T) {
@@ -17,8 +17,8 @@ func TestValidation(t *testing.T) {
 }
 
 func TestUsable(t *testing.T) {
-	tc, _ := testutils.ObtainAzureTestClient()
-	vlist, _ := testutils.WaitGetVirtualNetworkList(tc)
+	tc, _ := utils.NewDefaultAzureTestClient()
+	vlist, _ := utils.WaitGetVirtualNetworkList(tc)
 	vNet := vlist.Values()[0]
 	getAvailableSubnet(vNet)
 }
