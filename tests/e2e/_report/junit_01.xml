@@ -1,4 +1,2 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="1051.1595179">
-      <testcase name="Service with annotation public with IP to public without IP" classname="Cloud provider Azure e2e suite" time="1051.1585218"></testcase>
-  </testsuite>
+  <testsuite tests="1" failures="0" time="526.9873031"></testsuite>

@@ -35,8 +35,9 @@ func CreateNewSubnet(azureTestClient *AzureTestClient, vnet aznetwork.VirtualNet
 	return err
 }
 
-// WaitDeleteSubnet tries to delete a subnet in 5 minutes
-func WaitDeleteSubnet(azureTestClient *AzureTestClient, vnetName string, subnetName string) error {
+// DeleteSubnetWithRetry tries to delete a subnet in 5 minutes
+func DeleteSubnetWithRetry(azureTestClient *AzureTestClient, vnetName string, subnetName string) error {
+	Logf("Deleting subnet named %s in vnet %s", subnetName, vnetName)
 	subnetClient := aznetwork.SubnetsClient{BaseClient: azureTestClient.BaseClient}
 	err := wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
 		_, err := subnetClient.Delete(context.Background(), GetResourceGroup(), vnetName, subnetName)
@@ -49,14 +50,16 @@ func WaitDeleteSubnet(azureTestClient *AzureTestClient, vnetName string, subnetN
 }
 
 // WaitCreatePIP waits to create a public ip resource
-func WaitCreatePIP(azureTestClient *AzureTestClient, ipName string, ipParamete aznetwork.PublicIPAddress) error {
+func WaitCreatePIP(azureTestClient *AzureTestClient, ipName string, ipParameter aznetwork.PublicIPAddress) (aznetwork.PublicIPAddress, error) {
+	Logf("Creating public IP resourc named %s", ipName)
 	pipClient := aznetwork.PublicIPAddressesClient{BaseClient: azureTestClient.BaseClient}
-	_, err := pipClient.CreateOrUpdate(context.Background(), GetResourceGroup(), ipName, ipParamete)
+	_, err := pipClient.CreateOrUpdate(context.Background(), GetResourceGroup(), ipName, ipParameter)
+	var pip aznetwork.PublicIPAddress
 	if err != nil {
-		return err
+		return pip, err
 	}
 	err = wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
-		_, err = pipClient.Get(context.Background(), GetResourceGroup(), "PIP", "eastus.cloudapp.azure.com")
+		pip, err = pipClient.Get(context.Background(), GetResourceGroup(), ipName, "")
 		if err != nil {
 			if !isRetryableAPIError(err) {
 				return false, err
@@ -65,5 +68,35 @@ func WaitCreatePIP(azureTestClient *AzureTestClient, ipName string, ipParamete a
 		}
 		return true, nil
 	})
+	return pip, err
+}
+
+// DeletePIPWithRetry tries to delete a pulic ip resourc
+func DeletePIPWithRetry(azureTestClient *AzureTestClient, ipName string) error {
+	Logf("Deleting public IP resourc named %s", ipName)
+	pipClient := aznetwork.PublicIPAddressesClient{BaseClient: azureTestClient.BaseClient}
+	err := wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
+		_, err := pipClient.Delete(context.Background(), GetResourceGroup(), ipName)
+		if err != nil {
+			return false, nil
+		}
+		return true, nil
+	})
 	return err
+}
+
+// WaitGetPIP waits to get a specific public ip resource
+func WaitGetPIP(azureTestClient *AzureTestClient, ipName string) (err error) {
+	pipClient := aznetwork.PublicIPAddressesClient{BaseClient: azureTestClient.BaseClient}
+	err = wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
+		_, err = pipClient.Get(context.Background(), GetResourceGroup(), ipName, "")
+		if err != nil {
+			if !isRetryableAPIError(err) {
+				return false, err
+			}
+			return false, nil
+		}
+		return true, nil
+	})
+	return
 }

@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,8 +26,29 @@ func TestUsable(t *testing.T) {
 }
 
 func TestPIPCreation(t *testing.T) {
-	para := defaultPublicIPAddress()
+	para := defaultPublicIPAddress("PIP-test2")
 	tc, _ := testutils.ObtainAzureTestClient()
-	err := testutils.WaitCreatePIP(tc, "PIP-test", para)
+	_, err := testutils.WaitCreatePIP(tc, "PIP-test2", para)
 	fmt.Print(err)
+}
+
+func TestPrivateIPSelection(t *testing.T) {
+	tc, _ := testutils.ObtainAzureTestClient()
+	IP, err := selectAvailablePrivateIP(tc)
+	fmt.Print(IP)
+	assert.NoError(t, err, "find no private ip")
+}
+
+func TestMine(t *testing.T) {
+	a := strconv.Itoa(test())
+	fmt.Print(a)
+}
+func test() (i int) {
+	i = 0
+	defer func() {
+		fmt.Print(i)
+		i++
+	}()
+	i = 10
+	return
 }

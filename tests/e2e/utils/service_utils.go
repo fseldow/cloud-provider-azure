@@ -38,8 +38,10 @@ func GetServiceDomainName(prefix string) (ret string) {
 func WaitServiceExposure(cs clientset.Interface, namespace string, name string) (string, error) {
 	var service *v1.Service
 	var err error
+	poll := 10 * time.Second
+	timeout := 10 * time.Minute
 
-	if wait.PollImmediate(10*time.Second, 10*time.Minute, func() (bool, error) {
+	if wait.PollImmediate(poll, timeout, func() (bool, error) {
 		service, err = cs.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
 			if isRetryableAPIError(err) {
@@ -51,7 +53,7 @@ func WaitServiceExposure(cs clientset.Interface, namespace string, name string) 
 		IngressList := service.Status.LoadBalancer.Ingress
 		if IngressList == nil || len(IngressList) == 0 {
 			err = fmt.Errorf("Cannot find Ingress in limited time")
-			Logf("Fail to gind ingress, retry it in 10 seconds")
+			Logf("Fail to obtain ingress, retry it in %v seconds", poll)
 			return false, nil
 		}
 		Logf("Exposure successfully")
@@ -59,15 +61,18 @@ func WaitServiceExposure(cs clientset.Interface, namespace string, name string) 
 	}) != nil {
 		return "", err
 	}
+	Logf("Get Externel IP: %s", service.Status.LoadBalancer.Ingress[0].IP)
 	return service.Status.LoadBalancer.Ingress[0].IP, nil
 }
 
 // WaitUpdateServiceExposure returns ip of ingress
-func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name string, targetIP string) (string, error) {
+func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name string, targetIP string) error {
 	var service *v1.Service
 	var err error
+	poll := 10 * time.Second
+	timeout := 20 * time.Minute
 
-	if wait.PollImmediate(10*time.Second, 20*time.Minute, func() (bool, error) {
+	if wait.PollImmediate(poll, timeout, func() (bool, error) {
 		service, err = cs.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
 			if isRetryableAPIError(err) {
@@ -79,17 +84,17 @@ func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name st
 		IngressList := service.Status.LoadBalancer.Ingress
 		if IngressList == nil || len(IngressList) == 0 {
 			err = fmt.Errorf("Cannot find Ingress in limited time")
-			Logf("Fail to gind ingress, retry it in 10 seconds")
+			Logf("Fail to get ingress, retry it in %v seconds", poll)
 			return false, nil
 		}
-		if targetIP == service.Status.LoadBalancer.Ingress[0].IP {
-			Logf("Unmatched external IP")
+		if targetIP != service.Status.LoadBalancer.Ingress[0].IP {
+			Logf("still unmatched external IP, retry it in %v seconds", poll)
 			return false, nil
 		}
 		Logf("Exposure successfully")
 		return true, nil
 	}) != nil {
-		return "", err
+		return err
 	}
-	return service.Status.LoadBalancer.Ingress[0].IP, nil
+	return nil
 }
