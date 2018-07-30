@@ -9,7 +9,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/stretchr/testify/assert"
-	testutils "k8s.io/cloud-provider-azure/tests/e2e/utils"
+	"k8s.io/cloud-provider-azure/tests/e2e/utils"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -24,23 +24,23 @@ func TestValidation(t *testing.T) {
 }
 
 func TestUsable(t *testing.T) {
-	tc, _ := testutils.ObtainAzureTestClient()
-	vlist, _ := testutils.WaitGetVirtualNetworkList(tc)
+	tc, _ := utils.ObtainAzureTestClient()
+	vlist, _ := utils.WaitGetVirtualNetworkList(tc)
 	vNet := vlist.Values()[0]
 	getAvailableSubnet(vNet)
 }
 
 func TestPIPCreation(t *testing.T) {
 	para := defaultPublicIPAddress("PIP-test2")
-	tc, _ := testutils.ObtainAzureTestClient()
-	pip, err := testutils.WaitCreatePIP(tc, "PIP-test2", para)
+	tc, _ := utils.ObtainAzureTestClient()
+	pip, err := utils.WaitCreatePIP(tc, "PIP-test2", para)
 	a := to.String(pip.IPAddress)
 	fmt.Print(a)
 	fmt.Print(err)
 }
 
 func TestPrivateIPSelection(t *testing.T) {
-	tc, _ := testutils.ObtainAzureTestClient()
+	tc, _ := utils.ObtainAzureTestClient()
 	IP, err := selectAvailablePrivateIP(tc)
 	fmt.Print(IP)
 	assert.NoError(t, err, "find no private ip")

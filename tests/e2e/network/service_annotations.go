@@ -72,11 +72,6 @@ var _ = Describe("Service with annotation", func() {
 		deployment := defaultDeployment(serviceName, labels)
 		_, err = cs.Extensions().Deployments(ns.Name).Create(deployment)
 		Expect(err).NotTo(HaveOccurred())
-
-		testutils.Logf("Creating deployment " + serviceName)
-		deployment := defaultDeployment(serviceName, labels)
-		_, err = cs.Extensions().Deployments(ns.Name).Create(deployment)
-		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -98,7 +93,8 @@ var _ = Describe("Service with annotation", func() {
 			azure.ServiceAnnotationDNSLabelName: serviceDomainNamePrefix,
 		}
 
-		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		_, err := cs.CoreV1().Services(ns.Name).Create(service)
 		Expect(err).NotTo(HaveOccurred())
 		utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
@@ -141,7 +137,8 @@ var _ = Describe("Service with annotation", func() {
 			azure.ServiceAnnotationLoadBalancerInternal: "true",
 		}
 
-		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		_, err := cs.CoreV1().Services(ns.Name).Create(service)
 		Expect(err).NotTo(HaveOccurred())
 		utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
@@ -179,14 +176,15 @@ var _ = Describe("Service with annotation", func() {
 			azure.ServiceAnnotationLoadBalancerInternalSubnet: subnetName,
 		}
 
-		_, err = createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		_, err = cs.CoreV1().Services(ns.Name).Create(service)
 		Expect(err).NotTo(HaveOccurred())
 		defer func() {
 			By("Cleaning up")
 			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = utils.WaitDeleteSubnet(azureTestClient, *vNet.Name, subnetName)
+			err = utils.DeleteSubnetWithRetry(azureTestClient, *vNet.Name, subnetName)
 			Expect(err).NotTo(HaveOccurred())
 		}()
 

@@ -88,7 +88,11 @@ func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name st
 			return false, nil
 		}
 		if targetIP != service.Status.LoadBalancer.Ingress[0].IP == expectSame {
-			Logf("still unmatched external IP, retry it in %v seconds", poll)
+			if expectSame {
+				Logf("still unmatched external IP, retry it in %v seconds", poll)
+			} else {
+				Logf("External IP is still %s", targetIP)
+			}
 			return false, nil
 		}
 		Logf("Exposure successfully")
