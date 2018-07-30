@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
-	testutils "k8s.io/cloud-provider-azure/tests/e2e/utils"
+	utils "k8s.io/cloud-provider-azure/tests/e2e/utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -50,17 +50,17 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 	BeforeEach(func() {
 		var err error
 		By("Create test context")
-		cs, err = testutils.GetClientSet()
+		cs, err = utils.GetClientSet()
 		Expect(err).NotTo(HaveOccurred())
 
-		ns, err = testutils.CreateTestingNameSpace(basename, cs)
+		ns, err = utils.CreateTestingNameSpace(basename, cs)
 		Expect(err).NotTo(HaveOccurred())
 
-		nodes, err := testutils.GetAgentNodes(cs)
+		nodes, err := utils.GetAgentNodes(cs)
 		Expect(err).NotTo(HaveOccurred())
 
 		initNodeCount = len(nodes)
-		testutils.Logf("Initial number of schedulable nodes: %v", initNodeCount)
+		utils.Logf("Initial number of schedulable nodes: %v", initNodeCount)
 
 		// TODO:
 		// There should be a judgement that the initNodeCount should be smaller than the max nodes property
@@ -72,23 +72,23 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 			quantity := node.Status.Capacity[v1.ResourceCPU]
 			initNodeCapacity.Add(quantity)
 		}
-		testutils.Logf("Initial number of cores: %v", initNodeCapacity.Value())
+		utils.Logf("Initial number of cores: %v", initNodeCapacity.Value())
 
-		runningQuantity, err := testutils.GetAvailableNodeCapacity(cs)
+		runningQuantity, err := utils.GetAvailableNodeCapacity(cs)
 		Expect(err).NotTo(HaveOccurred())
 		emptyQuantity := initNodeCapacity.Copy()
 		emptyQuantity.Sub(runningQuantity)
 
 		podCount = int(emptyQuantity.MilliValue()/podSize) + 1
-		testutils.Logf("will create %v pod, each %vm size", podCount, podSize)
+		utils.Logf("will create %v pod, each %vm size", podCount, podSize)
 	})
 
 	AfterEach(func() {
-		err := testutils.DeleteNameSpace(cs, ns.Name)
+		err := utils.DeleteNameSpace(cs, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
 
 		//delete extra nodes
-		nodes, err := testutils.GetAgentNodes(cs)
+		nodes, err := utils.GetAgentNodes(cs)
 		Expect(err).NotTo(HaveOccurred())
 		var nodesToDelete []string
 		for _, n := range nodes {
@@ -96,7 +96,7 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 				nodesToDelete = append(nodesToDelete, n.Name)
 			}
 		}
-		err = testutils.WaitNodeDeletion(cs, nodesToDelete)
+		err = utils.WaitNodeDeletion(cs, nodesToDelete)
 		Expect(err).NotTo(HaveOccurred())
 
 		// clean up
@@ -109,25 +109,25 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 	})
 
 	It("should scale up if created pods exceed the node capacity [Feature:Autoscaling]", func() {
-		testutils.Logf("creating pods")
+		utils.Logf("creating pods")
 		for i := 0; i < podCount; i++ {
 			pod := scalerPod(fmt.Sprintf("%s-pod-%v", basename, i))
 			_, err := cs.CoreV1().Pods(ns.Name).Create(pod)
 			Expect(err).NotTo(HaveOccurred())
 		}
 		defer func() {
-			testutils.Logf("deleting pods")
-			err := testutils.WaitDeletePods(cs, ns.Name)
+			utils.Logf("deleting pods")
+			err := utils.WaitDeletePods(cs, ns.Name)
 			Expect(err).NotTo(HaveOccurred())
 		}()
 		By("scale up")
 		targetNodeCount := initNodeCount + 1
-		err := testutils.WaitAutoScaleNodes(cs, targetNodeCount)
+		err := utils.WaitAutoScaleNodes(cs, targetNodeCount)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should scale up or down if deployment replicas leave nodes busy or idle [Feature:Autoscaling]", func() {
-		testutils.Logf("Create deployment")
+		utils.Logf("Create deployment")
 		replicas := int32(podCount)
 		deployment := replicDeployment(basename+"-deployment", replicas, map[string]string{"app": basename})
 		_, err := cs.Extensions().Deployments(ns.Name).Create(deployment)
@@ -135,17 +135,17 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 
 		By("Scale up")
 		targetNodeCount := initNodeCount + 1
-		err = testutils.WaitAutoScaleNodes(cs, targetNodeCount)
+		err = utils.WaitAutoScaleNodes(cs, targetNodeCount)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Scale down")
-		testutils.Logf("Delete Pods by replic=0")
+		utils.Logf("Delete Pods by replic=0")
 		replicas = 0
 		deployment.Spec.Replicas = &replicas
 		_, err = cs.Extensions().Deployments(ns.Name).Update(deployment)
 		Expect(err).NotTo(HaveOccurred())
 		targetNodeCount = initNodeCount
-		err = testutils.WaitAutoScaleNodes(cs, targetNodeCount)
+		err = utils.WaitAutoScaleNodes(cs, targetNodeCount)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })

@@ -27,24 +27,24 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//"k8s.io/apimachinery/pkg/util/intstr"
-	//"k8s.io/apimachinery/pkg/util/uuid"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
-	testutils "k8s.io/cloud-provider-azure/tests/e2e/utils"
-	//"k8s.io/kubernetes/pkg/cloudprovider/providers/azure"
-	//. "github.com/onsi/ginkgo"
-	//. "github.com/onsi/gomega"
+	"k8s.io/cloud-provider-azure/tests/e2e/utils"
+	"k8s.io/kubernetes/pkg/cloudprovider/providers/azure"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 const (
 	nginxPort       = 80
 	nginxStatusCode = 200
-	callPoll        = 20 * time.Second
-	callTimeout     = 10 * time.Minute
+	pullInterval    = 20 * time.Second
+	pullTimeout     = 10 * time.Minute
 )
 
-/*
 var _ = Describe("Service with annotation", func() {
 	basename := "service"
 	serviceName := "annotation-test"
@@ -62,10 +62,15 @@ var _ = Describe("Service with annotation", func() {
 
 	BeforeEach(func() {
 		var err error
-		cs, err = testutils.GetClientSet()
+		cs, err = utils.GetClientSet()
 		Expect(err).NotTo(HaveOccurred())
 
-		ns, err = testutils.CreateTestingNameSpace(basename, cs)
+		ns, err = utils.CreateTestingNameSpace(basename, cs)
+		Expect(err).NotTo(HaveOccurred())
+
+		utils.Logf("Creating deployment " + serviceName)
+		deployment := defaultDeployment(serviceName, labels)
+		_, err = cs.Extensions().Deployments(ns.Name).Create(deployment)
 		Expect(err).NotTo(HaveOccurred())
 
 		testutils.Logf("Creating deployment " + serviceName)
@@ -78,7 +83,7 @@ var _ = Describe("Service with annotation", func() {
 		err := cs.Extensions().Deployments(ns.Name).Delete(serviceName, nil)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = testutils.DeleteNameSpace(cs, ns.Name)
+		err = utils.DeleteNameSpace(cs, ns.Name)
 		Expect(err).NotTo(HaveOccurred())
 
 		cs = nil
@@ -93,10 +98,9 @@ var _ = Describe("Service with annotation", func() {
 			azure.ServiceAnnotationDNSLabelName: serviceDomainNamePrefix,
 		}
 
-		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
-		_, err := cs.CoreV1().Services(ns.Name).Create(service)
+		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
 		Expect(err).NotTo(HaveOccurred())
-		testutils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
+		utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
 		defer func() {
 			By("Cleaning up")
@@ -106,12 +110,12 @@ var _ = Describe("Service with annotation", func() {
 		}()
 
 		By("Waiting for service exposure")
-		_, err = testutils.WaitServiceExposure(cs, ns.Name, serviceName)
+		_, err = utils.WaitServiceExposure(cs, ns.Name, serviceName)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Validating External domain name")
 		var code int
-		serviceDomainName := testutils.GetServiceDomainName(serviceDomainNamePrefix)
+		serviceDomainName := utils.GetServiceDomainName(serviceDomainNamePrefix)
 		url := fmt.Sprintf("http://%s:%v", serviceDomainName, ports[0].Port)
 		for i := 1; i <= 30; i++ {
 			resp, err := http.Get(url)
@@ -137,10 +141,9 @@ var _ = Describe("Service with annotation", func() {
 			azure.ServiceAnnotationLoadBalancerInternal: "true",
 		}
 
-		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
-		_, err := cs.CoreV1().Services(ns.Name).Create(service)
+		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
 		Expect(err).NotTo(HaveOccurred())
-		testutils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
+		utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
 		defer func() {
 			By("Cleaning up")
@@ -149,7 +152,7 @@ var _ = Describe("Service with annotation", func() {
 		}()
 
 		By("Waiting for service exposure")
-		ip, err := testutils.WaitServiceExposure(cs, ns.Name, serviceName)
+		ip, err := utils.WaitServiceExposure(cs, ns.Name, serviceName)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Validating whether the load balancer is internal")
@@ -160,48 +163,43 @@ var _ = Describe("Service with annotation", func() {
 
 	It("can specify which subnet the internal load balancer should be bound to", func() {
 		By("creating environment")
-		// TODO
-		// Test will fail if we add string(uuid.NewUUID()) to the subnetName
-		// subnet will build, but cannot exposure
 		subnetName := "lb-subnet" // + string(uuid.NewUUID())
 
-		azureTestClient, err := testutils.ObtainAzureTestClient()
+		azureTestClient, err := utils.NewDefaultAzureTestClient()
 		Expect(err).NotTo(HaveOccurred())
 		vNet, err := getVNet(azureTestClient)
 		Expect(err).NotTo(HaveOccurred())
 		newSubnetPrefix, err := getAvailableSubnet(vNet)
 		Expect(err).NotTo(HaveOccurred())
 
-		testutils.CreateNewSubnet(azureTestClient, vNet, &subnetName, &newSubnetPrefix)
+		utils.CreateNewSubnet(azureTestClient, vNet, &subnetName, &newSubnetPrefix)
 
 		annotation := map[string]string{
 			azure.ServiceAnnotationLoadBalancerInternal:       "true",
 			azure.ServiceAnnotationLoadBalancerInternalSubnet: subnetName,
 		}
 
-		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
-		_, err = cs.CoreV1().Services(ns.Name).Create(service)
+		_, err = createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
 		Expect(err).NotTo(HaveOccurred())
 		defer func() {
 			By("Cleaning up")
 			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = testutils.WaitDeleteSubnet(azureTestClient, *vNet.Name, subnetName)
+			err = utils.WaitDeleteSubnet(azureTestClient, *vNet.Name, subnetName)
 			Expect(err).NotTo(HaveOccurred())
 		}()
 
 		By("Waiting for service exposure")
-		ip, err := testutils.WaitServiceExposure(cs, ns.Name, serviceName)
+		ip, err := utils.WaitServiceExposure(cs, ns.Name, serviceName)
 		Expect(err).NotTo(HaveOccurred())
-		testutils.Logf("Get Externel IP: %s", ip)
+		utils.Logf("Get Externel IP: %s", ip)
 
 		By("Validating external ip in target subnet")
 		err = validateIPinPrefix(ip, newSubnetPrefix)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
-*/
 
 func loadBalancerService(c clientset.Interface, name string, annotation map[string]string, labels map[string]string, namespace string, ports []v1.ServicePort) *v1.Service {
 	service := &v1.Service{
@@ -262,8 +260,8 @@ func defaultDeployment(name string, labels map[string]string) (result *v1beta1.D
 // 2. internal source can access to it
 func validateInternalLoadBalancer(c clientset.Interface, ns string, url string) error {
 	// create a pod to access to the service
-	testutils.Logf("Validating external IP not be public and internal accessible")
-	testutils.Logf("Create a front pod to connect to service")
+	utils.Logf("Validating external IP not be public and internal accessible")
+	utils.Logf("Create a front pod to connect to service")
 	podName := "front-pod"
 	pod := &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -295,52 +293,52 @@ func validateInternalLoadBalancer(c clientset.Interface, ns string, url string) 
 		return err
 	}
 	defer func() {
-		testutils.Logf("Deleting front pod")
-		err = testutils.WaitDeletePod(c, ns, podName)
+		utils.Logf("Deleting front pod")
+		err = utils.WaitDeletePod(c, ns, podName)
 	}()
 
 	// publicFlag shows whether pulic accessible test ends
 	// internalFlag shows whether internal accessible test ends
-	testutils.Logf("Try two kinds of calling simulately")
+	utils.Logf("Try two kinds of calling simulately")
 	var publicFlag, internalFlag bool
-	err = wait.PollImmediate(callPoll, callTimeout, func() (bool, error) {
+	err = wait.PollImmediate(pullInterval, pullTimeout, func() (bool, error) {
 		if !publicFlag {
-			testutils.Logf("Still testing public access")
+			utils.Logf("Still testing public access")
 			resp, err := http.Get(url)
-			testutils.Logf("deleteResp")
+			utils.Logf("deleteResp")
 			if resp != nil {
 				resp.Body.Close()
 			}
 			if err == nil {
 				return false, fmt.Errorf("The load balancer is unexpectly external")
 			}
-			if !testutils.JudgeRetryable(err) {
-				testutils.Logf("Public access test passed")
+			if !utils.IsRetryableAPIError(err) {
+				utils.Logf("Public access test passed")
 				publicFlag = true
 			}
 		}
 
 		if !internalFlag {
 			// get log pod result
-			testutils.Logf("Still testing internal access")
+			utils.Logf("Still testing internal access")
 			out, _ := exec.Command("kubectl", "logs", podName, "--namespace", ns).Output()
 			if strings.Contains(fmt.Sprintf("%s", out), "200") {
-				testutils.Logf("Internal access test passed")
+				utils.Logf("Internal access test passed")
 				internalFlag = true
 			}
 		}
 		if publicFlag && internalFlag {
-			testutils.Logf("Both tests passed!")
+			utils.Logf("Both tests passed!")
 		}
 		return publicFlag && internalFlag, nil
 	})
-	testutils.Logf("validation finished")
+	utils.Logf("validation finished")
 
 	return err
 }
 
-func getVNet(azureTestClient *testutils.AzureTestClient) (ret aznetwork.VirtualNetwork, err error) {
-	vNetList, err := testutils.WaitGetVirtualNetworkList(azureTestClient)
+func getVNet(azureTestClient *utils.AzureTestClient) (ret aznetwork.VirtualNetwork, err error) {
+	vNetList, err := utils.WaitGetVirtualNetworkList(azureTestClient)
 	if err != nil {
 		return
 	}

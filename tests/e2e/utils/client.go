@@ -23,22 +23,17 @@ import (
 	aznetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	testauth "k8s.io/cloud-provider-azure/tests/e2e/auth"
-)
-
-const (
-	clusterLocationEnv = "K8S_AZURE_LOCATION"
 )
 
 // AzureTestClient configs Azure specific clients
 type AzureTestClient struct {
-	aznetwork.BaseClient
+	networkClient aznetwork.BaseClient
 }
 
 // NewDefaultAzureTestClient makes a new AzureTestClient
 func NewDefaultAzureTestClient() (*AzureTestClient, error) {
-	authconfig := testauth.AzureAuthConfigFromTestProfile()
-	servicePrincipleToken, err := testauth.GetServicePrincipalToken(authconfig, parseEnvFromLocation())
+	authconfig := AzureAuthConfigFromTestProfile()
+	servicePrincipleToken, err := GetServicePrincipalToken(authconfig, parseEnvFromLocation())
 	if err != nil {
 		return nil, err
 	}
@@ -46,10 +41,25 @@ func NewDefaultAzureTestClient() (*AzureTestClient, error) {
 	baseClient.Authorizer = autorest.NewBearerAuthorizer(servicePrincipleToken)
 
 	c := &AzureTestClient{
-		BaseClient: baseClient,
+		networkClient: baseClient,
 	}
 
 	return c, nil
+}
+
+// GetSubnetsClient generates subnet client with the same baseclient as azure test client
+func (tc *AzureTestClient) GetSubnetsClient() *aznetwork.SubnetsClient {
+	return &aznetwork.SubnetsClient{BaseClient: tc.networkClient}
+}
+
+// GetVirtualNetworksClient generates virtual network client with the same baseclient as azure test client
+func (tc *AzureTestClient) GetVirtualNetworksClient() *aznetwork.VirtualNetworksClient {
+	return &aznetwork.VirtualNetworksClient{BaseClient: tc.networkClient}
+}
+
+// GetPublicIPAddressesClient generates virtual network client with the same baseclient as azure test client
+func (tc *AzureTestClient) GetPublicIPAddressesClient() *aznetwork.PublicIPAddressesClient {
+	return &aznetwork.PublicIPAddressesClient{BaseClient: tc.networkClient}
 }
 
 func parseEnvFromLocation() *azure.Environment {

@@ -54,7 +54,7 @@ func waitListNodes(cs clientset.Interface) (*v1.NodeList, error) {
 	if wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
 		nodes, err = cs.CoreV1().Nodes().List(metav1.ListOptions{})
 		if err != nil {
-			if isRetryableAPIError(err) {
+			if IsRetryableAPIError(err) {
 				return false, nil
 			}
 			return false, err
@@ -76,7 +76,7 @@ func WaitAutoScaleNodes(cs clientset.Interface, targetNodeCount int) error {
 	if wait.PollImmediate(poll, autoScaleTimeOut, func() (bool, error) {
 		nodes, err = GetAgentNodes(cs)
 		if err != nil {
-			if isRetryableAPIError(err) {
+			if IsRetryableAPIError(err) {
 				return false, nil
 			}
 			return false, err

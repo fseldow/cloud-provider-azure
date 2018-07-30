@@ -10,11 +10,11 @@ import (
 // WaitGetVirtualNetworkList is a wapper around listing VirtualNetwork
 func WaitGetVirtualNetworkList(azureTestClient *AzureTestClient) (result aznetwork.VirtualNetworkListResultPage, err error) {
 	Logf("Getting virtural network list")
-	vNetClient := aznetwork.VirtualNetworksClient{BaseClient: azureTestClient.BaseClient}
+	vNetClient := azureTestClient.GetVirtualNetworksClient()
 	err = wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
 		result, err = vNetClient.List(context.Background(), GetResourceGroup())
 		if err != nil {
-			if !isRetryableAPIError(err) {
+			if !IsRetryableAPIError(err) {
 				return false, err
 			}
 			return false, nil
@@ -30,7 +30,7 @@ func CreateNewSubnet(azureTestClient *AzureTestClient, vnet aznetwork.VirtualNet
 	subnetParameter := (*vnet.Subnets)[0]
 	subnetParameter.Name = subnetName
 	subnetParameter.AddressPrefix = prefix
-	subnetsClient := aznetwork.SubnetsClient{BaseClient: azureTestClient.BaseClient}
+	subnetsClient := azureTestClient.GetSubnetsClient()
 	_, err := subnetsClient.CreateOrUpdate(context.Background(), GetResourceGroup(), *vnet.Name, *subnetName, subnetParameter)
 	return err
 }
@@ -38,7 +38,7 @@ func CreateNewSubnet(azureTestClient *AzureTestClient, vnet aznetwork.VirtualNet
 // DeleteSubnetWithRetry tries to delete a subnet in 5 minutes
 func DeleteSubnetWithRetry(azureTestClient *AzureTestClient, vnetName string, subnetName string) error {
 	Logf("Deleting subnet named %s in vnet %s", subnetName, vnetName)
-	subnetClient := aznetwork.SubnetsClient{BaseClient: azureTestClient.BaseClient}
+	subnetClient := azureTestClient.GetSubnetsClient()
 	err := wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
 		_, err := subnetClient.Delete(context.Background(), GetResourceGroup(), vnetName, subnetName)
 		if err != nil {
@@ -52,7 +52,7 @@ func DeleteSubnetWithRetry(azureTestClient *AzureTestClient, vnetName string, su
 // WaitCreatePIP waits to create a public ip resource
 func WaitCreatePIP(azureTestClient *AzureTestClient, ipName string, ipParameter aznetwork.PublicIPAddress) (aznetwork.PublicIPAddress, error) {
 	Logf("Creating public IP resourc named %s", ipName)
-	pipClient := aznetwork.PublicIPAddressesClient{BaseClient: azureTestClient.BaseClient}
+	pipClient := azureTestClient.GetPublicIPAddressesClient()
 	_, err := pipClient.CreateOrUpdate(context.Background(), GetResourceGroup(), ipName, ipParameter)
 	var pip aznetwork.PublicIPAddress
 	if err != nil {
@@ -61,7 +61,7 @@ func WaitCreatePIP(azureTestClient *AzureTestClient, ipName string, ipParameter 
 	err = wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
 		pip, err = pipClient.Get(context.Background(), GetResourceGroup(), ipName, "")
 		if err != nil {
-			if !isRetryableAPIError(err) {
+			if !IsRetryableAPIError(err) {
 				return false, err
 			}
 			return false, nil
@@ -74,7 +74,7 @@ func WaitCreatePIP(azureTestClient *AzureTestClient, ipName string, ipParameter 
 // DeletePIPWithRetry tries to delete a pulic ip resourc
 func DeletePIPWithRetry(azureTestClient *AzureTestClient, ipName string) error {
 	Logf("Deleting public IP resourc named %s", ipName)
-	pipClient := aznetwork.PublicIPAddressesClient{BaseClient: azureTestClient.BaseClient}
+	pipClient := azureTestClient.GetPublicIPAddressesClient()
 	err := wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
 		_, err := pipClient.Delete(context.Background(), GetResourceGroup(), ipName)
 		if err != nil {
@@ -87,11 +87,11 @@ func DeletePIPWithRetry(azureTestClient *AzureTestClient, ipName string) error {
 
 // WaitGetPIP waits to get a specific public ip resource
 func WaitGetPIP(azureTestClient *AzureTestClient, ipName string) (err error) {
-	pipClient := aznetwork.PublicIPAddressesClient{BaseClient: azureTestClient.BaseClient}
+	pipClient := azureTestClient.GetPublicIPAddressesClient()
 	err = wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
 		_, err = pipClient.Get(context.Background(), GetResourceGroup(), ipName, "")
 		if err != nil {
-			if !isRetryableAPIError(err) {
+			if !IsRetryableAPIError(err) {
 				return false, err
 			}
 			return false, nil

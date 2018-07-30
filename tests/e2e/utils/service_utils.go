@@ -44,7 +44,7 @@ func WaitServiceExposure(cs clientset.Interface, namespace string, name string) 
 	if wait.PollImmediate(poll, timeout, func() (bool, error) {
 		service, err = cs.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
-			if isRetryableAPIError(err) {
+			if IsRetryableAPIError(err) {
 				return false, nil
 			}
 			return false, err
@@ -75,7 +75,7 @@ func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name st
 	return wait.PollImmediate(poll, timeout, func() (bool, error) {
 		service, err = cs.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
-			if isRetryableAPIError(err) {
+			if IsRetryableAPIError(err) {
 				return false, nil
 			}
 			return false, err

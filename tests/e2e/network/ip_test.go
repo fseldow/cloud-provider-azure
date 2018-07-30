@@ -5,9 +5,13 @@ import (
 	"strconv"
 	"testing"
 
+	"testing"
+
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/stretchr/testify/assert"
 	testutils "k8s.io/cloud-provider-azure/tests/e2e/utils"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestValidation(t *testing.T) {
