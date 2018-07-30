@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/stretchr/testify/assert"
 	testutils "k8s.io/cloud-provider-azure/tests/e2e/utils"
 )
@@ -28,7 +29,9 @@ func TestUsable(t *testing.T) {
 func TestPIPCreation(t *testing.T) {
 	para := defaultPublicIPAddress("PIP-test2")
 	tc, _ := testutils.ObtainAzureTestClient()
-	_, err := testutils.WaitCreatePIP(tc, "PIP-test2", para)
+	pip, err := testutils.WaitCreatePIP(tc, "PIP-test2", para)
+	a := to.String(pip.IPAddress)
+	fmt.Print(a)
 	fmt.Print(err)
 }
 

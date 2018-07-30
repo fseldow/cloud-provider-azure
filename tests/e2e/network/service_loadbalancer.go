@@ -10,6 +10,7 @@ import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	testutils "k8s.io/cloud-provider-azure/tests/e2e/utils"
 	"k8s.io/kubernetes/pkg/cloudprovider/providers/azure"
@@ -77,6 +78,8 @@ var _ = Describe("ServiceLoadBalancer", func() {
 
 		pip, err := testutils.WaitCreatePIP(tc, ipName, defaultPublicIPAddress(ipName))
 		Expect(err).NotTo(HaveOccurred())
+		targetIP := to.String(pip.IPAddress)
+		testutils.Logf("PIP to %s", targetIP)
 
 		defer func() {
 			By("Cleaning up")
@@ -90,7 +93,6 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		ip1, err := testutils.WaitServiceExposure(cs, ns.Name, serviceName)
 		Expect(err).NotTo(HaveOccurred())
 
-		targetIP := to.String(pip.IPAddress)
 		Expect(ip1).NotTo(Equal(targetIP))
 
 		By("Updating service to bound to specific public IP")
@@ -101,7 +103,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		_, err = cs.CoreV1().Services(ns.Name).Update(service)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP)
+		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, true)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -131,9 +133,8 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		}()
 
 		By("Waiting for exposure of public service with assigned lb IP")
-		ip1, err := testutils.WaitServiceExposure(cs, ns.Name, serviceName)
+		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, true)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(ip1).To(Equal(targetIP))
 
 		By("Updating the service to a public service without lb IP")
 		service, err = cs.CoreV1().Services(ns.Name).Get(serviceName, metav1.GetOptions{})
@@ -141,7 +142,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		_, err = cs.CoreV1().Services(ns.Name).Update(service)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, "")
+		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, false)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Validate user's pulic IP resource exists")
@@ -169,7 +170,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}()
 		By("Waiting for exposure of internal service with specific IP")
-		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip1)
+		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip1, true)
 		Expect(err).NotTo(HaveOccurred())
 
 		ip2, err := selectAvailablePrivateIP(tc)
@@ -182,7 +183,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		_, err = cs.CoreV1().Services(ns.Name).Update(service)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip2)
+		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip2, true)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -200,6 +201,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 
 		pip, err := testutils.WaitCreatePIP(tc, ipName, defaultPublicIPAddress(ipName))
 		Expect(err).NotTo(HaveOccurred())
+		targetIP := to.String(pip.IPAddress)
 
 		defer func() {
 			By("Cleaning up")
@@ -212,8 +214,6 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		By("Waiting for exposure of the original service without assigned lb private IP")
 		ip1, err := testutils.WaitServiceExposure(cs, ns.Name, serviceName)
 		Expect(err).NotTo(HaveOccurred())
-
-		targetIP := to.String(pip.IPAddress)
 		Expect(ip1).NotTo(Equal(targetIP))
 
 		By("Updating service to bound to specific public IP")
@@ -224,8 +224,46 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		_, err = cs.CoreV1().Services(ns.Name).Update(service)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP)
+		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, true)
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should have no operation since no change in service when update", func() {
+		annotation := map[string]string{
+			azure.ServiceAnnotationLoadBalancerInternal: "false",
+		}
+		ipName := basename + "-public-remain"
+		pip, err := testutils.WaitCreatePIP(tc, ipName, defaultPublicIPAddress(ipName))
+		Expect(err).NotTo(HaveOccurred())
+		targetIP := to.String(pip.IPAddress)
+
+		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		service = updateServiceBalanceIP(service, false, targetIP)
+		_, err = cs.CoreV1().Services(ns.Name).Create(service)
+		Expect(err).NotTo(HaveOccurred())
+		testutils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
+
+		defer func() {
+			By("Cleaning up")
+			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
+			Expect(err).NotTo(HaveOccurred())
+			err = testutils.DeletePIPWithRetry(tc, ipName)
+			Expect(err).NotTo(HaveOccurred())
+		}()
+
+		By("Waiting for exposure of the original service with assigned lb private IP")
+		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, true)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Update without changing the service and wait for a while")
+		testutils.Logf("Exteral IP is now %s", targetIP)
+		service, err = cs.CoreV1().Services(ns.Name).Get(serviceName, metav1.GetOptions{})
+		_, err = cs.CoreV1().Services(ns.Name).Update(service)
+		Expect(err).NotTo(HaveOccurred())
+
+		//Wait for 10 minutes, there should return timeout err, since external ip should not change
+		err = testutils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, false /*expectSame*/)
+		Expect(err).To(Equal(wait.ErrWaitTimeout))
 	})
 })
 

@@ -66,7 +66,7 @@ func WaitCreatePIP(azureTestClient *AzureTestClient, ipName string, ipParameter 
 			}
 			return false, nil
 		}
-		return true, nil
+		return pip.IPAddress != nil, nil
 	})
 	return pip, err
 }

@@ -66,13 +66,13 @@ func WaitServiceExposure(cs clientset.Interface, namespace string, name string) 
 }
 
 // WaitUpdateServiceExposure returns ip of ingress
-func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name string, targetIP string) error {
+func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name string, targetIP string, expectSame bool) error {
 	var service *v1.Service
 	var err error
 	poll := 10 * time.Second
-	timeout := 20 * time.Minute
+	timeout := 10 * time.Minute
 
-	if wait.PollImmediate(poll, timeout, func() (bool, error) {
+	return wait.PollImmediate(poll, timeout, func() (bool, error) {
 		service, err = cs.CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
 			if isRetryableAPIError(err) {
@@ -87,14 +87,11 @@ func WaitUpdateServiceExposure(cs clientset.Interface, namespace string, name st
 			Logf("Fail to get ingress, retry it in %v seconds", poll)
 			return false, nil
 		}
-		if targetIP != service.Status.LoadBalancer.Ingress[0].IP {
+		if targetIP != service.Status.LoadBalancer.Ingress[0].IP == expectSame {
 			Logf("still unmatched external IP, retry it in %v seconds", poll)
 			return false, nil
 		}
 		Logf("Exposure successfully")
 		return true, nil
-	}) != nil {
-		return err
-	}
-	return nil
+	})
 }
