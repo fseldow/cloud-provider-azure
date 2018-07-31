@@ -10,6 +10,7 @@ import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/cloud-provider-azure/tests/e2e/utils"
@@ -69,7 +70,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		annotation := map[string]string{
 			azure.ServiceAnnotationLoadBalancerInternal: "false",
 		}
-		ipName := basename + "-public-none-IP"
+		ipName := basename + "-public-none-IP" + string(uuid.NewUUID())[0:4]
 
 		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
 		_, err := cs.CoreV1().Services(ns.Name).Create(service)
@@ -112,7 +113,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		annotation := map[string]string{
 			azure.ServiceAnnotationLoadBalancerInternal: "false",
 		}
-		ipName := basename + "-public-IP-none"
+		ipName := basename + "-public-IP-none" + string(uuid.NewUUID())[0:4]
 
 		pip, err := utils.WaitCreatePIP(tc, ipName, defaultPublicIPAddress(ipName))
 		Expect(err).NotTo(HaveOccurred())
@@ -192,7 +193,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		annotation := map[string]string{
 			azure.ServiceAnnotationLoadBalancerInternal: "true",
 		}
-		ipName := basename + "-internal-none-public-IP"
+		ipName := basename + "-internal-none-public-IP" + string(uuid.NewUUID())[0:4]
 
 		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
 		_, err := cs.CoreV1().Services(ns.Name).Create(service)
@@ -232,7 +233,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		annotation := map[string]string{
 			azure.ServiceAnnotationLoadBalancerInternal: "false",
 		}
-		ipName := basename + "-public-remain"
+		ipName := basename + "-public-remain" + string(uuid.NewUUID())[0:4]
 		pip, err := utils.WaitCreatePIP(tc, ipName, defaultPublicIPAddress(ipName))
 		Expect(err).NotTo(HaveOccurred())
 		targetIP := to.String(pip.IPAddress)
