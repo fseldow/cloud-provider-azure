@@ -23,7 +23,6 @@ import (
 	"strings"
 	"time"
 
-	aznetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -62,14 +61,14 @@ var _ = Describe("Service with annotation", func() {
 
 	BeforeEach(func() {
 		var err error
-		cs, err = utils.GetClientSet()
+		cs, err = utils.CreateKubeClientSet()
 		Expect(err).NotTo(HaveOccurred())
 
 		ns, err = utils.CreateTestingNameSpace(basename, cs)
 		Expect(err).NotTo(HaveOccurred())
 
 		utils.Logf("Creating deployment " + serviceName)
-		deployment := defaultDeployment(serviceName, labels)
+		deployment := createNginxDeployment(serviceName, labels)
 		_, err = cs.Extensions().Deployments(ns.Name).Create(deployment)
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -93,7 +92,8 @@ var _ = Describe("Service with annotation", func() {
 			azure.ServiceAnnotationDNSLabelName: serviceDomainNamePrefix,
 		}
 
-		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		service := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		_, err := cs.CoreV1().Services(ns.Name).Create(service)
 		Expect(err).NotTo(HaveOccurred())
 		utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
@@ -136,7 +136,8 @@ var _ = Describe("Service with annotation", func() {
 			azure.ServiceAnnotationLoadBalancerInternal: "true",
 		}
 
-		_, err := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		service := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		_, err := cs.CoreV1().Services(ns.Name).Create(service)
 		Expect(err).NotTo(HaveOccurred())
 		utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
@@ -160,28 +161,29 @@ var _ = Describe("Service with annotation", func() {
 		By("creating environment")
 		subnetName := "lb-subnet" // + string(uuid.NewUUID())
 
-		azureTestClient, err := utils.NewDefaultAzureTestClient()
+		azureTestClient, err := utils.CreateAzureTestClient()
 		Expect(err).NotTo(HaveOccurred())
-		vNet, err := getVNet(azureTestClient)
+		vNet, err := utils.GetClusterVirtualNetwork(azureTestClient)
 		Expect(err).NotTo(HaveOccurred())
-		newSubnetPrefix, err := getAvailableSubnet(vNet)
+		newSubnetPrefix, err := utils.GetNoneConflictSubnetAdress(vNet)
 		Expect(err).NotTo(HaveOccurred())
 
-		utils.CreateNewSubnet(azureTestClient, vNet, &subnetName, &newSubnetPrefix)
+		utils.CreateSubnet(azureTestClient, vNet, &subnetName, &newSubnetPrefix)
 
 		annotation := map[string]string{
 			azure.ServiceAnnotationLoadBalancerInternal:       "true",
 			azure.ServiceAnnotationLoadBalancerInternalSubnet: subnetName,
 		}
 
-		_, err = createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		service := createLoadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		_, err = cs.CoreV1().Services(ns.Name).Create(service)
 		Expect(err).NotTo(HaveOccurred())
 		defer func() {
 			By("Cleaning up")
 			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = utils.WaitDeleteSubnet(azureTestClient, *vNet.Name, subnetName)
+			err = utils.DeleteSubnet(azureTestClient, *vNet.Name, subnetName)
 			Expect(err).NotTo(HaveOccurred())
 		}()
 
@@ -191,13 +193,13 @@ var _ = Describe("Service with annotation", func() {
 		utils.Logf("Get Externel IP: %s", ip)
 
 		By("Validating external ip in target subnet")
-		err = validateIPinPrefix(ip, newSubnetPrefix)
+		err = utils.ValidateIPFitPrefix(ip, newSubnetPrefix)
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
 
-func createLoadBalancerService(c clientset.Interface, name string, annotation map[string]string, labels map[string]string, namespace string, ports []v1.ServicePort) (*v1.Service, error) {
-	service := v1.Service{
+func createLoadBalancerService(c clientset.Interface, name string, annotation map[string]string, labels map[string]string, namespace string, ports []v1.ServicePort) *v1.Service {
+	return &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
 			Annotations: annotation,
@@ -208,12 +210,11 @@ func createLoadBalancerService(c clientset.Interface, name string, annotation ma
 			Type:     "LoadBalancer",
 		},
 	}
-	return c.CoreV1().Services(namespace).Create(&service)
 }
 
 // defaultDeployment returns a default deployment
 // running nginx image which exposes port 80
-func defaultDeployment(name string, labels map[string]string) (result *v1beta1.Deployment) {
+func createNginxDeployment(name string, labels map[string]string) (result *v1beta1.Deployment) {
 	var replicas int32
 	replicas = 5
 	result = &v1beta1.Deployment{
@@ -289,7 +290,7 @@ func validateInternalLoadBalancer(c clientset.Interface, ns string, url string) 
 	}
 	defer func() {
 		utils.Logf("Deleting front pod")
-		err = utils.WaitDeletePod(c, ns, podName)
+		err = utils.DeletePod(c, ns, podName)
 	}()
 
 	// publicFlag shows whether pulic accessible test ends
@@ -328,20 +329,5 @@ func validateInternalLoadBalancer(c clientset.Interface, ns string, url string) 
 		return publicFlag && internalFlag, nil
 	})
 	utils.Logf("validation finished")
-
 	return err
-}
-
-func getVNet(azureTestClient *utils.AzureTestClient) (ret aznetwork.VirtualNetwork, err error) {
-	vNetList, err := utils.WaitGetVirtualNetworkList(azureTestClient)
-	if err != nil {
-		return
-	}
-	// Assume there is only one cluster in one resource group
-	if len(vNetList.Values()) != 1 {
-		err = fmt.Errorf("Found no or more than 1 virtual network in resource group same as cluster name")
-		return
-	}
-	ret = vNetList.Values()[0]
-	return
 }

@@ -1,41 +1,17 @@
-package network
+package utils
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	aznetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 )
 
 const (
 	leastPrefixMask = 12
 )
 
-// getAvailableSubnet obtains an non-conflict subnet
-func getAvailableSubnet(vnet aznetwork.VirtualNetwork) (string, error) {
-	if len((*vnet.AddressSpace.AddressPrefixes)) == 0 {
-		return "", fmt.Errorf("vNet has no prefix")
-	}
-	vnetPrefix := (*vnet.AddressSpace.AddressPrefixes)[0]
-	intIPArray, vNetMask, err := prefixString2intArray(vnetPrefix)
-	if err != nil {
-		return "", fmt.Errorf("Unexpected vnet address prefix")
-	}
-	root := initIPTreeRoot(vNetMask)
-	for _, subnet := range *vnet.Subnets {
-		subnetIPArray, subnetMask, err := prefixString2intArray(*subnet.AddressPrefix)
-		if err != nil {
-			return "", fmt.Errorf("Unexpected subnet address prefix")
-		}
-		setOccupiedByMask(root, subnetIPArray, subnetMask)
-	}
-	retArray, retMask := findNodeUsable(root, intIPArray)
-	ret := prefixIntArray2String(retArray, retMask)
-	return ret, nil
-}
-
-func validateIPinPrefix(ip, prefix string) error {
+//ValidateIPFitPrefix validates whether certain ip fits prefix
+func ValidateIPFitPrefix(ip, prefix string) error {
 	ipInt, _, err := prefixString2intArray(ip)
 	if err != nil {
 		return err

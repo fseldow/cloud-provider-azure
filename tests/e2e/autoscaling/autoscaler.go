@@ -50,7 +50,7 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 	BeforeEach(func() {
 		var err error
 		By("Create test context")
-		cs, err = utils.GetClientSet()
+		cs, err = utils.CreateKubeClientSet()
 		Expect(err).NotTo(HaveOccurred())
 
 		ns, err = utils.CreateTestingNameSpace(basename, cs)
@@ -96,7 +96,7 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 				nodesToDelete = append(nodesToDelete, n.Name)
 			}
 		}
-		err = utils.WaitNodeDeletion(cs, nodesToDelete)
+		err = utils.DeleteNodesList(cs, nodesToDelete)
 		Expect(err).NotTo(HaveOccurred())
 
 		// clean up
@@ -111,13 +111,13 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 	It("should scale up if created pods exceed the node capacity [Feature:Autoscaling]", func() {
 		utils.Logf("creating pods")
 		for i := 0; i < podCount; i++ {
-			pod := scalerPod(fmt.Sprintf("%s-pod-%v", basename, i))
+			pod := createScalerPod(fmt.Sprintf("%s-pod-%v", basename, i))
 			_, err := cs.CoreV1().Pods(ns.Name).Create(pod)
 			Expect(err).NotTo(HaveOccurred())
 		}
 		defer func() {
 			utils.Logf("deleting pods")
-			err := utils.WaitDeletePods(cs, ns.Name)
+			err := utils.DeletePodsList(cs, ns.Name)
 			Expect(err).NotTo(HaveOccurred())
 		}()
 		By("scale up")
@@ -129,7 +129,7 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 	It("should scale up or down if deployment replicas leave nodes busy or idle [Feature:Autoscaling]", func() {
 		utils.Logf("Create deployment")
 		replicas := int32(podCount)
-		deployment := replicDeployment(basename+"-deployment", replicas, map[string]string{"app": basename})
+		deployment := createReplicDeployment(basename+"-deployment", replicas, map[string]string{"app": basename})
 		_, err := cs.Extensions().Deployments(ns.Name).Create(deployment)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -150,7 +150,7 @@ var _ = Describe("Cluster size autoscaler [Serial][Slow]", func() {
 	})
 })
 
-func generatePodSpec() (result v1.PodSpec) {
+func createPodSpec() (result v1.PodSpec) {
 	result = v1.PodSpec{
 		Containers: []v1.Container{
 			{
@@ -168,8 +168,8 @@ func generatePodSpec() (result v1.PodSpec) {
 	return
 }
 
-func scalerPod(name string) (result *v1.Pod) {
-	spec := generatePodSpec()
+func createScalerPod(name string) (result *v1.Pod) {
+	spec := createPodSpec()
 	result = &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
@@ -179,8 +179,8 @@ func scalerPod(name string) (result *v1.Pod) {
 	return
 }
 
-func replicDeployment(name string, replicas int32, label map[string]string) (result *v1beta1.Deployment) {
-	spec := generatePodSpec()
+func createReplicDeployment(name string, replicas int32, label map[string]string) (result *v1beta1.Deployment) {
+	spec := createPodSpec()
 	result = &v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,

@@ -43,8 +43,8 @@ func findExistingKubeConfig() string {
 	return rules.GetDefaultFilename()
 }
 
-// GetClientSet obtains the client set interface from Kubeconfig
-func GetClientSet() (clientset.Interface, error) {
+// CreateKubeClientSet obtains the client set interface from Kubeconfig
+func CreateKubeClientSet() (clientset.Interface, error) {
 	//TODO: It should implement only once
 	//rather than once per test
 	Logf("Creating a kubernetes client")
@@ -59,28 +59,6 @@ func GetClientSet() (clientset.Interface, error) {
 		return nil, err
 	}
 	return clientSet, nil
-}
-
-// ExtractDNSPrefix obtains the cluster DNS prefix
-func ExtractDNSPrefix() string {
-	c := obtainConfig()
-	return c.CurrentContext
-}
-
-// extractSuffix obtains the server domain name suffix
-func extractSuffix() string {
-	c := obtainConfig()
-	prefix := ExtractDNSPrefix()
-	url := c.Clusters[prefix].Server
-	suffix := url[strings.Index(url, "."):]
-	return suffix
-}
-
-// Load config from file
-func obtainConfig() *clientcmdapi.Config {
-	filename := findExistingKubeConfig()
-	c := clientcmd.GetConfigFromFileOrDie(filename)
-	return c
 }
 
 //CreateTestingNameSpace builds namespace for each test
@@ -113,6 +91,24 @@ func CreateTestingNameSpace(baseName string, cs clientset.Interface) (*v1.Namesp
 	return got, nil
 }
 
+func getNamespacesList(cs clientset.Interface) (*v1.NamespaceList, error) {
+	var list *v1.NamespaceList
+	if err := wait.PollImmediate(poll, 30*time.Second, func() (bool, error) {
+		var err error
+		list, err = cs.CoreV1().Namespaces().List(metav1.ListOptions{})
+		if err != nil {
+			if IsRetryableAPIError(err) {
+				return false, nil
+			}
+			return false, err
+		}
+		return true, nil
+	}); err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
 // DeleteNameSpace deletes the provided namespace, waits for it to be completely deleted, and then checks
 // whether there are any pods remaining in a non-terminating state.
 func DeleteNameSpace(cs clientset.Interface, namespace string) error {
@@ -133,36 +129,7 @@ func DeleteNameSpace(cs clientset.Interface, namespace string) error {
 		}
 		return false, nil
 	})
-
 	return err
-}
-
-func waitListNamespace(cs clientset.Interface) (*v1.NamespaceList, error) {
-	var list *v1.NamespaceList
-	if err := wait.PollImmediate(poll, 30*time.Second, func() (bool, error) {
-		var err error
-		list, err = cs.CoreV1().Namespaces().List(metav1.ListOptions{})
-		if err != nil {
-			if IsRetryableAPIError(err) {
-				return false, nil
-			}
-			return false, err
-		}
-		return true, nil
-	}); err != nil {
-		return nil, err
-	}
-	return list, nil
-}
-
-// stringInSlice check if string in a list
-func stringInSlice(s string, list []string) bool {
-	for _, item := range list {
-		if item == s {
-			return true
-		}
-	}
-	return false
 }
 
 // IsRetryableAPIError will judge whether an error retrable or not
@@ -182,4 +149,36 @@ func IsRetryableAPIError(err error) bool {
 // GetResourceGroup get RG name which is same of cluster name as definited in k8s-azure
 func GetResourceGroup() string {
 	return ExtractDNSPrefix()
+}
+
+// ExtractDNSPrefix obtains the cluster DNS prefix
+func ExtractDNSPrefix() string {
+	c := obtainConfig()
+	return c.CurrentContext
+}
+
+// extractSuffix obtains the server domain name suffix
+func extractSuffix() string {
+	c := obtainConfig()
+	prefix := ExtractDNSPrefix()
+	url := c.Clusters[prefix].Server
+	suffix := url[strings.Index(url, "."):]
+	return suffix
+}
+
+// Load config from file
+func obtainConfig() *clientcmdapi.Config {
+	filename := findExistingKubeConfig()
+	c := clientcmd.GetConfigFromFileOrDie(filename)
+	return c
+}
+
+// stringInSlice check if string in a list
+func stringInSlice(s string, list []string) bool {
+	for _, item := range list {
+		if item == s {
+			return true
+		}
+	}
+	return false
 }

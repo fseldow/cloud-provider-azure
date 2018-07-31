@@ -28,37 +28,8 @@ const (
 	pauseImage = "k8s.gcr.io/pause:3.1"
 )
 
-// WaitDeletePods deletes all pods in the namespace
-func WaitDeletePods(cs clientset.Interface, ns string) error {
-	pods, err := waitListPods(cs, ns)
-	if err != nil {
-		return err
-	}
-	for _, p := range pods.Items {
-		err = WaitDeletePod(cs, ns, p.Name)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// WaitDeletePod deletes a single pod
-func WaitDeletePod(cs clientset.Interface, ns string, podName string) error {
-	err := cs.CoreV1().Pods(ns).Delete(podName, nil)
-	if err != nil {
-		return err
-	}
-	return wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
-		if _, err := cs.CoreV1().Pods(ns).Get(podName, metav1.GetOptions{}); err != nil {
-			return apierrs.IsNotFound(err), nil
-		}
-		return false, nil
-	})
-}
-
-// waitListPods is a wapper around listing pods
-func waitListPods(cs clientset.Interface, ns string) (*v1.PodList, error) {
+// GetPodsList is a wapper around listing pods
+func GetPodsList(cs clientset.Interface, ns string) (*v1.PodList, error) {
 	var pods *v1.PodList
 	var err error
 	if wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
@@ -74,4 +45,33 @@ func waitListPods(cs clientset.Interface, ns string) (*v1.PodList, error) {
 		return pods, err
 	}
 	return pods, nil
+}
+
+// DeletePodsList deletes all pods in the namespace
+func DeletePodsList(cs clientset.Interface, ns string) error {
+	pods, err := GetPodsList(cs, ns)
+	if err != nil {
+		return err
+	}
+	for _, p := range pods.Items {
+		err = DeletePod(cs, ns, p.Name)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DeletePod deletes a single pod
+func DeletePod(cs clientset.Interface, ns string, podName string) error {
+	err := cs.CoreV1().Pods(ns).Delete(podName, nil)
+	if err != nil {
+		return err
+	}
+	return wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
+		if _, err := cs.CoreV1().Pods(ns).Get(podName, metav1.GetOptions{}); err != nil {
+			return apierrs.IsNotFound(err), nil
+		}
+		return false, nil
+	})
 }

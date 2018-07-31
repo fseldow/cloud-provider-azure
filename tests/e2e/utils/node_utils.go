@@ -34,7 +34,7 @@ const (
 
 // GetAgentNodes obtians the list of agent nodes
 func GetAgentNodes(cs clientset.Interface) ([]v1.Node, error) {
-	nodesList, err := waitListNodes(cs)
+	nodesList, err := GetNodesList(cs)
 	if err != nil {
 		return nil, err
 	}
@@ -47,8 +47,8 @@ func GetAgentNodes(cs clientset.Interface) ([]v1.Node, error) {
 	return ret, nil
 }
 
-// waitListSchedulableNodes is a wapper around listing nodes
-func waitListNodes(cs clientset.Interface) (*v1.NodeList, error) {
+// GetNodesList is a wapper around listing nodes
+func GetNodesList(cs clientset.Interface) (*v1.NodeList, error) {
 	var nodes *v1.NodeList
 	var err error
 	if wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
@@ -64,6 +64,67 @@ func waitListNodes(cs clientset.Interface) (*v1.NodeList, error) {
 		return nodes, err
 	}
 	return nodes, nil
+}
+
+// GetAvailableNodeCapacity will calculate the overall quantity of
+// cpu requested by all running pods in all namespaces
+func GetAvailableNodeCapacity(cs clientset.Interface) (resource.Quantity, error) {
+	var result resource.Quantity
+	namespaceList, err := getNamespacesList(cs)
+	if err != nil {
+		return result, err
+	}
+	masterNodeNames, err := obtainMasterNodeNames(cs)
+	if err != nil {
+		return result, err
+	}
+
+	for _, namespace := range namespaceList.Items {
+		podList, err := GetPodsList(cs, namespace.Name)
+		if err != nil {
+			// will not abort, just ignore this namespace
+			Logf("Ignore pods resource request in namespace %s", namespace.Name)
+			continue
+		}
+		for _, pod := range podList.Items {
+			if pod.Status.Phase == v1.PodRunning {
+				if !stringInSlice(pod.Spec.NodeName, masterNodeNames) {
+					for _, container := range pod.Spec.Containers {
+						cpuRequest := container.Resources.Requests[v1.ResourceCPU]
+						result.Add(cpuRequest)
+					}
+				}
+			}
+		}
+	}
+	return result, nil
+}
+
+// DeleteNodesList ensures a list of nodes to be deleted
+func DeleteNodesList(cs clientset.Interface, names []string) error {
+	for _, name := range names {
+		if err := deleteNode(cs, name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+//deleteNodes deletes nodes according to names
+func deleteNode(cs clientset.Interface, name string) error {
+	Logf("Deleting node: %s", name)
+	if err := cs.CoreV1().Nodes().Delete(name, nil); err != nil {
+		return err
+	}
+
+	// wait for node to delete or timeout.
+	err := wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
+		if _, err := cs.CoreV1().Nodes().Get(name, metav1.GetOptions{}); err != nil {
+			return apierrs.IsNotFound(err), nil
+		}
+		return false, nil
+	})
+	return err
 }
 
 // WaitAutoScaleNodes returns nodes count after autoscaling in 30 minutes
@@ -93,33 +154,6 @@ func WaitAutoScaleNodes(cs clientset.Interface, targetNodeCount int) error {
 	return err
 }
 
-// WaitNodeDeletion ensures a list of nodes to be deleted
-func WaitNodeDeletion(cs clientset.Interface, names []string) error {
-	for _, name := range names {
-		if err := deleteNode(cs, name); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-//deleteNodes deletes nodes according to names
-func deleteNode(cs clientset.Interface, name string) error {
-	Logf("Deleting node: %s", name)
-	if err := cs.CoreV1().Nodes().Delete(name, nil); err != nil {
-		return err
-	}
-
-	// wait for node to delete or timeout.
-	err := wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
-		if _, err := cs.CoreV1().Nodes().Get(name, metav1.GetOptions{}); err != nil {
-			return apierrs.IsNotFound(err), nil
-		}
-		return false, nil
-	})
-	return err
-}
-
 // isMasterNode returns true if the node has a master role label.
 // The master role is determined by looking for:
 // * a kubernetes.io/role="master" label
@@ -132,7 +166,7 @@ func isMasterNode(node *v1.Node) bool {
 
 func obtainMasterNodeNames(cs clientset.Interface) ([]string, error) {
 	masters := make([]string, 0)
-	nodeList, err := waitListNodes(cs)
+	nodeList, err := GetNodesList(cs)
 	if err != nil {
 		return masters, err
 	}
@@ -142,38 +176,4 @@ func obtainMasterNodeNames(cs clientset.Interface) ([]string, error) {
 		}
 	}
 	return masters, nil
-}
-
-// GetAvailableNodeCapacity will calculate the overall quantity of
-// cpu requested by all running pods in all namespaces
-func GetAvailableNodeCapacity(cs clientset.Interface) (resource.Quantity, error) {
-	var result resource.Quantity
-	namespaceList, err := waitListNamespace(cs)
-	if err != nil {
-		return result, err
-	}
-	masterNodeNames, err := obtainMasterNodeNames(cs)
-	if err != nil {
-		return result, err
-	}
-
-	for _, namespace := range namespaceList.Items {
-		podList, err := waitListPods(cs, namespace.Name)
-		if err != nil {
-			// will not abort, just ignore this namespace
-			Logf("Ignore pods resource request in namespace %s", namespace.Name)
-			continue
-		}
-		for _, pod := range podList.Items {
-			if pod.Status.Phase == v1.PodRunning {
-				if !stringInSlice(pod.Spec.NodeName, masterNodeNames) {
-					for _, container := range pod.Spec.Containers {
-						cpuRequest := container.Resources.Requests[v1.ResourceCPU]
-						result.Add(cpuRequest)
-					}
-				}
-			}
-		}
-	}
-	return result, nil
 }
