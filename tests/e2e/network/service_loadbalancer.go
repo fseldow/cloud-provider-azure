@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	aznetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -64,7 +65,45 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		ns = nil
 		tc = nil
 	})
+	/*
+		// Internal defalt subnet -> Internal assigned subnet
+		It("should support updating internal IP when updating internal service", func() {
+			annotation := map[string]string{
+				azure.ServiceAnnotationLoadBalancerInternal: "true",
+			}
+			ip1, err := selectAvailablePrivateIP(tc)
+			Expect(err).NotTo(HaveOccurred())
 
+			service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+			service = updateServiceBalanceIP(service, true, ip1)
+			_, err = cs.CoreV1().Services(ns.Name).Create(service)
+			Expect(err).NotTo(HaveOccurred())
+			utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
+
+			defer func() {
+				By("Cleaning up")
+				err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
+				Expect(err).NotTo(HaveOccurred())
+			}()
+			By("Waiting for exposure of internal service with specific IP")
+			err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip1, true)
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err := selectAvailablePrivateIP(tc)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Updating internal service private IP")
+			utils.Logf("will update IP to %s", ip2)
+			service, err = cs.CoreV1().Services(ns.Name).Get(serviceName, metav1.GetOptions{})
+			service.Annotations[azure.ServiceAnnotationLoadBalancerInternalSubnet] = "test"
+			service.Spec.LoadBalancerIP = ""
+			_, err = cs.CoreV1().Services(ns.Name).Update(service)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip1, false)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	*/
 	// Public w/o IP -> Public w/ IP
 	It("should support assigning to specific IP when updating public service", func() {
 		annotation := map[string]string{
@@ -237,6 +276,7 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		pip, err := utils.WaitCreatePIP(tc, ipName, defaultPublicIPAddress(ipName))
 		Expect(err).NotTo(HaveOccurred())
 		targetIP := to.String(pip.IPAddress)
+		targetIP = ""
 
 		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
 		service = updateServiceBalanceIP(service, false, targetIP)
@@ -253,18 +293,21 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		}()
 
 		By("Waiting for exposure of the original service with assigned lb private IP")
-		err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, true)
+		targetIP, err = utils.WaitServiceExposure(cs, ns.Name, serviceName)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Update without changing the service and wait for a while")
 		utils.Logf("Exteral IP is now %s", targetIP)
 		service, err = cs.CoreV1().Services(ns.Name).Get(serviceName, metav1.GetOptions{})
+		service.Annotations[azure.ServiceAnnotationDNSLabelName] = "testlabel"
+		utils.Logf(service.Annotations[azure.ServiceAnnotationDNSLabelName])
 		_, err = cs.CoreV1().Services(ns.Name).Update(service)
 		Expect(err).NotTo(HaveOccurred())
 
 		//Wait for 10 minutes, there should return timeout err, since external ip should not change
 		err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, false /*expectSame*/)
 		Expect(err).To(Equal(wait.ErrWaitTimeout))
+		time.Sleep(10 * time.Minute)
 	})
 })
 

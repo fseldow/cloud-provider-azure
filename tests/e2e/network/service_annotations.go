@@ -27,15 +27,11 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/cloud-provider-azure/tests/e2e/utils"
-	"k8s.io/kubernetes/pkg/cloudprovider/providers/azure"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	//. "github.com/onsi/ginkgo"
+	//. "github.com/onsi/gomega"
 )
 
 const (
@@ -45,6 +41,7 @@ const (
 	pullTimeout     = 10 * time.Minute
 )
 
+/*
 var _ = Describe("Service with annotation", func() {
 	basename := "service"
 	serviceName := "annotation-test"
@@ -198,7 +195,7 @@ var _ = Describe("Service with annotation", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
-
+*/
 func loadBalancerService(c clientset.Interface, name string, annotation map[string]string, labels map[string]string, namespace string, ports []v1.ServicePort) *v1.Service {
 	service := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
