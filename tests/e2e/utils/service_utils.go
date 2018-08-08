@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"k8s.io/api/core/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
@@ -58,4 +59,23 @@ func WaitServiceExposure(cs clientset.Interface, namespace string, name string) 
 		return err
 	}
 	return nil
+}
+
+// DeleteServiceAccount deletes a ServiceAccount
+func DeleteServiceAccount(cs clientset.Interface, namespace string, serviceAccountName string) error {
+	Logf("Deleting service account %s in namespace %s", namespace, serviceAccountName)
+	err := cs.CoreV1().ServiceAccounts(namespace).Delete(serviceAccountName, &metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	return wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
+		if _, err := cs.CoreV1().ServiceAccounts(namespace).Get(serviceAccountName, metav1.GetOptions{}); err != nil {
+			if apierrs.IsNotFound(err) {
+				return true, nil
+			}
+			Logf("Error while waiting for service account to be deleted: %v", err)
+			return false, nil
+		}
+		return false, nil
+	})
 }

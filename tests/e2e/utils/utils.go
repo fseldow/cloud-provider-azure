@@ -82,6 +82,33 @@ func obtainConfig() *clientcmdapi.Config {
 	return c
 }
 
+// CreateNamespace creates a namespace with assigned name
+func CreateNamespace(cs clientset.Interface, namespaceName string) (*v1.Namespace, error) {
+	Logf("Creating a namespace")
+	namespaceObj := &v1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespaceName,
+		},
+		Status: v1.NamespaceStatus{},
+	}
+	// Be robust about making the namespace creation call.
+	var got *v1.Namespace
+	if err := wait.PollImmediate(poll, 30*time.Second, func() (bool, error) {
+		var err error
+		got, err = cs.CoreV1().Namespaces().Create(namespaceObj)
+		if err != nil {
+			if isRetryableAPIError(err) {
+				return false, nil
+			}
+			return false, err
+		}
+		return true, nil
+	}); err != nil {
+		return nil, err
+	}
+	return got, nil
+}
+
 //CreateTestingNameSpace builds namespace for each test
 //baseName and labels determine name of the space
 func CreateTestingNameSpace(baseName string, cs clientset.Interface) (*v1.Namespace, error) {

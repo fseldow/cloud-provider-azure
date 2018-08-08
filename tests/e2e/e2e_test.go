@@ -30,6 +30,7 @@ import (
 
 	_ "k8s.io/cloud-provider-azure/tests/e2e/autoscaling"
 	_ "k8s.io/cloud-provider-azure/tests/e2e/network"
+	_ "k8s.io/cloud-provider-azure/tests/e2e/storage"
 )
 
 func TestAzureTest(t *testing.T) {
