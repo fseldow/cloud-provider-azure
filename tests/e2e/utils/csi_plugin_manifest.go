@@ -23,6 +23,11 @@ const (
 	devMount        = "dev-dir"
 	devMountPath    = "/dev"
 
+	manifestFilePathRelatedToGOPATH = "github.com/karataliu/csi-plugins-azuredisk/examples/kubernetes/"
+	attacherYamlFileName            = "attacher.yaml"
+	pluginYamlFileName              = "plugin.yaml"
+	provisionerYamlFileName         = "provisoner.yaml"
+
 	attacherServiceAccountName     = "csi-attacher"
 	attacherClusterRoleName        = "external-attacher-runner"
 	attacherClusterRoleBindingName = "csi-attacher-role"

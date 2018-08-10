@@ -5,6 +5,7 @@ import (
 
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/kubernetes/cmd/kubeadm/app/util"
 )
 
 // DeployCsiPlugin depolys the csi plugin
@@ -76,25 +77,29 @@ func CleanupCsiPlugins(cs clientset.Interface) error {
 }
 
 func createPlugins(cs clientset.Interface, namespace string) error {
-	funcs := []func(clientset.Interface, string) error{
-		createAttacherServiceAccount,
-		createAttacherClusterRole,
-		createAttacherClusterRoleBinding,
-		createAttacherStatefulSet,
-		createPluginServiceAccount,
-		createPluginClusterRole,
-		createPluginClusterRoleBinding,
-		createPluginDaemonSet,
-		createProvisionerServiceAccount,
-		createProvisionerClusterRole,
-		createProvisionerClusterRoleBinding,
-		createProvisionerStatefulSet,
-	}
-	for _, fun := range funcs {
-		if err := fun(cs, namespace); err != nil {
-			return err
+	util.SplitYAMLDocuments()
+	util.UnmarshalFromYaml()
+	/*
+		funcs := []func(clientset.Interface, string) error{
+			createAttacherServiceAccount,
+			createAttacherClusterRole,
+			createAttacherClusterRoleBinding,
+			createAttacherStatefulSet,
+			createPluginServiceAccount,
+			createPluginClusterRole,
+			createPluginClusterRoleBinding,
+			createPluginDaemonSet,
+			createProvisionerServiceAccount,
+			createProvisionerClusterRole,
+			createProvisionerClusterRoleBinding,
+			createProvisionerStatefulSet,
 		}
-	}
+		for _, fun := range funcs {
+			if err := fun(cs, namespace); err != nil {
+				return err
+			}
+		}
+	*/
 	return nil
 }
 
