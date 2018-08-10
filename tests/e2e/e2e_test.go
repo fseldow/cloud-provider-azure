@@ -27,6 +27,7 @@ import (
 	"github.com/onsi/ginkgo/config"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
+	"k8s.io/cloud-provider-azure/tests/e2e/utils"
 
 	_ "k8s.io/cloud-provider-azure/tests/e2e/autoscaling"
 	_ "k8s.io/cloud-provider-azure/tests/e2e/network"
@@ -34,6 +35,17 @@ import (
 )
 
 func TestAzureTest(t *testing.T) {
+	if err := createCsiPlugins(); err != nil {
+		glog.Fatal("Failed to build the csi plugins: %v", err)
+	}
+	/*
+		defer func() {
+			if err := cleanupCsiPlugins(); err != nil {
+				glog.Fatal("Failed to clean up the csi plugins: %v", err)
+			}
+		}()
+	*/
+
 	RegisterFailHandler(Fail)
 	reportDir := "_report/"
 
@@ -46,4 +58,22 @@ func TestAzureTest(t *testing.T) {
 		}
 	}
 	RunSpecsWithDefaultAndCustomReporters(t, "Cloud provider Azure e2e suite", r)
+}
+
+func createCsiPlugins() error {
+	cs, err := utils.GetClientSet()
+	if err != nil {
+		return err
+	}
+	err = utils.DeployCsiPlugin(cs)
+	return err
+}
+
+func cleanupCsiPlugins() error {
+	cs, err := utils.GetClientSet()
+	if err != nil {
+		return err
+	}
+	err = utils.CleanupCsiPlugins(cs)
+	return err
 }

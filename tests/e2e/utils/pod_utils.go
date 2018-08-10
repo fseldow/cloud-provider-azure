@@ -68,3 +68,18 @@ func waitListPods(cs clientset.Interface, ns string) (*v1.PodList, error) {
 	}
 	return pods, nil
 }
+
+// DeletePod deletes a single pod
+func DeletePod(cs clientset.Interface, ns string, podName string) error {
+	err := cs.CoreV1().Pods(ns).Delete(podName, nil)
+	Logf("Deleting pod %s in namespace %s", podName, ns)
+	if err != nil {
+		return err
+	}
+	return wait.PollImmediate(poll, deletionTimeout, func() (bool, error) {
+		if _, err := cs.CoreV1().Pods(ns).Get(podName, metav1.GetOptions{}); err != nil {
+			return apierrs.IsNotFound(err), nil
+		}
+		return false, nil
+	})
+}

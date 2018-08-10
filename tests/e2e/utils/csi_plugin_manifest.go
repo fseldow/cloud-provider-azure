@@ -45,6 +45,7 @@ var allowPrivilegeEscalation = true
 var mountPropagationBidirectional = core_v1.MountPropagationBidirectional
 var hostPathDirectoryOrCreate = core_v1.HostPathDirectoryOrCreate
 var hostPathDirectory = core_v1.HostPathDirectory
+var persistentVolumeReclaimDelete = core_v1.PersistentVolumeReclaimDelete
 
 func createSecretManifest(data map[string][]byte) *core_v1.Secret {
 	return &core_v1.Secret{
@@ -56,7 +57,6 @@ func createSecretManifest(data map[string][]byte) *core_v1.Secret {
 }
 
 func createStorageClassManifest() *storage_v1.StorageClass {
-	persistentVolumeReclaimDelete := core_v1.PersistentVolumeReclaimDelete
 	return &storage_v1.StorageClass{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: storageClassName,
@@ -221,23 +221,23 @@ func createPluginClusterRoleManifest() *rbac_v1.ClusterRole {
 		Rules: []rbac_v1.PolicyRule{
 			{
 				APIGroups: []string{""},
-				Resources: []string{"persistentvolumes"},
-				Verbs:     []string{"get", "list", "watch", "update"},
-			},
-			{
-				APIGroups: []string{""},
 				Resources: []string{"nodes"},
 				Verbs:     []string{"get", "list", "update"},
-			},
-			{
-				APIGroups: []string{"storage.k8s.io"},
-				Resources: []string{"volumesattachments"},
-				Verbs:     []string{"get", "list", "watch", "update"},
 			},
 			{
 				APIGroups: []string{""},
 				Resources: []string{"namespaces"},
 				Verbs:     []string{"get", "list"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"persistentvolumes"},
+				Verbs:     []string{"get", "list", "watch", "update"},
+			},
+			{
+				APIGroups: []string{"storage.k8s.io"},
+				Resources: []string{"volumeattachments"},
+				Verbs:     []string{"get", "list", "watch", "update"},
 			},
 		},
 	}
@@ -263,7 +263,7 @@ func createPluginClusterRoleBindingManifest() *rbac_v1.ClusterRoleBinding {
 	}
 }
 
-func createPluginDeamonSetManifest() *app_v1.DaemonSet {
+func createPluginDaemonSetManifest() *app_v1.DaemonSet {
 	return &app_v1.DaemonSet{
 		ObjectMeta: meta_v1.ObjectMeta{
 			Name: pluginDaemonSetName,
@@ -484,7 +484,8 @@ func createProvisionerStatefulSetManifest() *app_v1beta1.StatefulSet {
 							},
 						},
 						{
-							Name: "plugin",
+							Name:            "plugin",
+							ImagePullPolicy: core_v1.PullAlways,
 							//TODO:
 							//should dynamic build the plugin image
 							Image: "karataliu/csi-azuredisk:3",
@@ -498,7 +499,6 @@ func createProvisionerStatefulSetManifest() *app_v1beta1.StatefulSet {
 									Value: "1",
 								},
 							},
-							ImagePullPolicy: core_v1.PullAlways,
 							VolumeMounts: []core_v1.VolumeMount{
 								{
 									Name:      socketMount,
