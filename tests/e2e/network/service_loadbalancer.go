@@ -65,45 +65,45 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		ns = nil
 		tc = nil
 	})
-	/*
-		// Internal defalt subnet -> Internal assigned subnet
-		It("should support updating internal IP when updating internal service", func() {
-			annotation := map[string]string{
-				azure.ServiceAnnotationLoadBalancerInternal: "true",
-			}
-			ip1, err := selectAvailablePrivateIP(tc)
-			Expect(err).NotTo(HaveOccurred())
 
-			service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
-			service = updateServiceBalanceIP(service, true, ip1)
-			_, err = cs.CoreV1().Services(ns.Name).Create(service)
-			Expect(err).NotTo(HaveOccurred())
-			utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
+	// Internal defalt subnet -> Internal assigned subnet
+	It("should support updating internal IP when updating internal service", func() {
+		annotation := map[string]string{
+			azure.ServiceAnnotationLoadBalancerInternal: "true",
+		}
+		ip1, err := selectAvailablePrivateIP(tc)
+		Expect(err).NotTo(HaveOccurred())
 
-			defer func() {
-				By("Cleaning up")
-				err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
-				Expect(err).NotTo(HaveOccurred())
-			}()
-			By("Waiting for exposure of internal service with specific IP")
-			err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip1, true)
-			Expect(err).NotTo(HaveOccurred())
+		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+		service = updateServiceBalanceIP(service, true, ip1)
+		_, err = cs.CoreV1().Services(ns.Name).Create(service)
+		Expect(err).NotTo(HaveOccurred())
+		utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
-			_, err := selectAvailablePrivateIP(tc)
+		defer func() {
+			By("Cleaning up")
+			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
 			Expect(err).NotTo(HaveOccurred())
+		}()
+		By("Waiting for exposure of internal service with specific IP")
+		err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip1, true)
+		Expect(err).NotTo(HaveOccurred())
 
-			By("Updating internal service private IP")
-			utils.Logf("will update IP to %s", ip2)
-			service, err = cs.CoreV1().Services(ns.Name).Get(serviceName, metav1.GetOptions{})
-			service.Annotations[azure.ServiceAnnotationLoadBalancerInternalSubnet] = "test"
-			service.Spec.LoadBalancerIP = ""
-			_, err = cs.CoreV1().Services(ns.Name).Update(service)
-			Expect(err).NotTo(HaveOccurred())
+		_, err = selectAvailablePrivateIP(tc)
+		Expect(err).NotTo(HaveOccurred())
 
-			err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip1, false)
-			Expect(err).NotTo(HaveOccurred())
-		})
-	*/
+		By("Updating internal service private IP")
+		//	utils.Logf("will update IP to %s", ip2)
+		service, err = cs.CoreV1().Services(ns.Name).Get(serviceName, metav1.GetOptions{})
+		service.Annotations[azure.ServiceAnnotationLoadBalancerInternalSubnet] = "test"
+		service.Spec.LoadBalancerIP = ""
+		_, err = cs.CoreV1().Services(ns.Name).Update(service)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, ip1, false)
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	// Public w/o IP -> Public w/ IP
 	It("should support assigning to specific IP when updating public service", func() {
 		annotation := map[string]string{
@@ -147,48 +147,51 @@ var _ = Describe("ServiceLoadBalancer", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	// Public w/ IP -> Public w/o IP
-	It("should update public IP without deleting the user's PIP resource", func() {
-		annotation := map[string]string{
-			azure.ServiceAnnotationLoadBalancerInternal: "false",
-		}
-		ipName := basename + "-public-IP-none" + string(uuid.NewUUID())[0:4]
+	// deserted should not active
+	/*
+		// Public w/ IP -> Public w/o IP
+		It("should update public IP without deleting the user's PIP resource", func() {
+			annotation := map[string]string{
+				azure.ServiceAnnotationLoadBalancerInternal: "false",
+			}
+			ipName := basename + "-public-IP-none" + string(uuid.NewUUID())[0:4]
 
-		pip, err := utils.WaitCreatePIP(tc, ipName, defaultPublicIPAddress(ipName))
-		Expect(err).NotTo(HaveOccurred())
-		targetIP := to.String(pip.IPAddress)
-
-		service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
-		service = updateServiceBalanceIP(service, false, targetIP)
-		_, err = cs.CoreV1().Services(ns.Name).Create(service)
-		Expect(err).NotTo(HaveOccurred())
-		utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
-
-		defer func() {
-			By("Cleaning up")
-			err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
+			pip, err := utils.WaitCreatePIP(tc, ipName, defaultPublicIPAddress(ipName))
 			Expect(err).NotTo(HaveOccurred())
-			err = utils.DeletePIPWithRetry(tc, ipName)
+			targetIP := to.String(pip.IPAddress)
+
+			service := loadBalancerService(cs, serviceName, annotation, labels, ns.Name, ports)
+			service = updateServiceBalanceIP(service, false, targetIP)
+			_, err = cs.CoreV1().Services(ns.Name).Create(service)
 			Expect(err).NotTo(HaveOccurred())
-		}()
+			utils.Logf("Successfully created LoadBalancer service " + serviceName + " in namespace " + ns.Name)
 
-		By("Waiting for exposure of public service with assigned lb IP")
-		err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, true)
-		Expect(err).NotTo(HaveOccurred())
+			defer func() {
+				By("Cleaning up")
+				err = cs.CoreV1().Services(ns.Name).Delete(serviceName, nil)
+				Expect(err).NotTo(HaveOccurred())
+				err = utils.DeletePIPWithRetry(tc, ipName)
+				Expect(err).NotTo(HaveOccurred())
+			}()
 
-		By("Updating the service to a public service without lb IP")
-		service, err = cs.CoreV1().Services(ns.Name).Get(serviceName, metav1.GetOptions{})
-		service = updateServiceBalanceIP(service, false, "")
-		_, err = cs.CoreV1().Services(ns.Name).Update(service)
-		Expect(err).NotTo(HaveOccurred())
+			By("Waiting for exposure of public service with assigned lb IP")
+			err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, true)
+			Expect(err).NotTo(HaveOccurred())
 
-		err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, false)
-		Expect(err).NotTo(HaveOccurred())
+			By("Updating the service to a public service without lb IP")
+			service, err = cs.CoreV1().Services(ns.Name).Get(serviceName, metav1.GetOptions{})
+			service = updateServiceBalanceIP(service, false, "")
+			_, err = cs.CoreV1().Services(ns.Name).Update(service)
+			Expect(err).NotTo(HaveOccurred())
 
-		By("Validate user's pulic IP resource exists")
-		err = utils.WaitGetPIP(tc, ipName)
-		Expect(err).NotTo(HaveOccurred())
-	})
+			err = utils.WaitUpdateServiceExposure(cs, ns.Name, serviceName, targetIP, false)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Validate user's pulic IP resource exists")
+			err = utils.WaitGetPIP(tc, ipName)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	*/
 
 	// Internal w/ IP -> Internal w/ IP
 	It("should support updating internal IP when updating internal service", func() {
