@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <testsuite tests="1" failures="0" time="16.5346946">
+      <testcase name="Service with annotation can be accessed by domain name" classname="Cloud provider Azure e2e suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Service with annotation can be bound to an internal load balancer" classname="Cloud provider Azure e2e suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="Service with annotation can specify which subnet the internal load balancer should be bound to" classname="Cloud provider Azure e2e suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="node2 interface" classname="Cloud provider Azure e2e suite" time="16.5346946"></testcase>
+  </testsuite>

@@ -19,8 +19,10 @@ package utils
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	aznetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/go-autorest/autorest/to"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -91,4 +93,83 @@ func GetNextSubnetCIDR(vnet aznetwork.VirtualNetwork) (string, error) {
 		existSubnets = append(existSubnets, subnet)
 	}
 	return getNextSubnet(vnetCIDR, existSubnets)
+}
+
+// CreateOrUpdateInterface creates or update an interface
+func (azureTestClient *AzureTestClient) CreateOrUpdateInterface(networkInterfaceName string, parameters aznetwork.Interface) error {
+	Logf("Creating or updating interface %s", networkInterfaceName)
+	interfaceClient := azureTestClient.createInterfacesClient()
+	_, err := interfaceClient.CreateOrUpdate(context.Background(), getResourceGroup(), networkInterfaceName, parameters)
+	return err
+}
+
+// GetAgentVirtualMachineInterface gets the interface of a vm
+func (azureTestClient *AzureTestClient) GetAgentVirtualMachineInterface(vmName string) (vmInterface aznetwork.Interface, err error) {
+	Logf("Fetching the interface of virtual machine %s", vmName)
+	vm, err := azureTestClient.getVirtualMachine(vmName)
+	if err != nil {
+		return
+	}
+	interfacesList := vm.NetworkProfile.NetworkInterfaces
+	if interfacesList == nil {
+		err = fmt.Errorf("find no interface")
+		return
+	}
+	if len(*interfacesList) != 1 {
+		err = fmt.Errorf("find multiple interfaces")
+		return
+	}
+	id := to.String((*interfacesList)[0].ID)
+	interfaceName := extractResourceNameFromID(id)
+
+	interfaceClient := azureTestClient.createInterfacesClient()
+	vmInterface, err = interfaceClient.Get(context.Background(), getResourceGroup(), interfaceName, "")
+	return
+}
+
+func extractResourceNameFromID(ID string) string {
+	pos := strings.LastIndex(ID, "/")
+	return ID[pos+1:]
+}
+
+// CreatePublicIP waits to create a public ip resource
+func (azureTestClient *AzureTestClient) CreatePublicIP(ipName string, ipParameter aznetwork.PublicIPAddress) (pip aznetwork.PublicIPAddress, err error) {
+	Logf("Creating public IP resource named %s", ipName)
+	pipClient := azureTestClient.GetPublicIPAddressesClient()
+	_, err = pipClient.CreateOrUpdate(context.Background(), getResourceGroup(), ipName, ipParameter)
+	if err != nil {
+		return
+	}
+	pip, err = azureTestClient.getPublicIP(ipName)
+	return
+}
+
+// DeletePublicIP tries to delete a pulic ip resource
+func (azureTestClient *AzureTestClient) DeletePublicIP(ipName string) error {
+	Logf("Deleting public IP resource named %s", ipName)
+	pipClient := azureTestClient.GetPublicIPAddressesClient()
+	err := wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
+		_, err := pipClient.Delete(context.Background(), getResourceGroup(), ipName)
+		if err != nil {
+			return false, nil
+		}
+		return true, nil
+	})
+	return err
+}
+
+// getPublicIP waits to get a specific public ip resource
+func (azureTestClient *AzureTestClient) getPublicIP(ipName string) (pip aznetwork.PublicIPAddress, err error) {
+	pipClient := azureTestClient.GetPublicIPAddressesClient()
+	err = wait.PollImmediate(poll, singleCallTimeout, func() (bool, error) {
+		pip, err = pipClient.Get(context.Background(), getResourceGroup(), ipName, "")
+		if err != nil {
+			if !IsRetryableAPIError(err) {
+				return false, err
+			}
+			return false, nil
+		}
+		return true, nil
+	})
+	return
 }

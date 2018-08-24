@@ -17,6 +17,7 @@ limitations under the License.
 package utils
 
 import (
+	azcompute "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	aznetwork "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -25,6 +26,7 @@ import (
 // AzureTestClient configs Azure specific clients
 type AzureTestClient struct {
 	networkClient aznetwork.BaseClient
+	computeClient azcompute.BaseClient
 }
 
 // CreateAzureTestClient makes a new AzureTestClient
@@ -38,11 +40,15 @@ func CreateAzureTestClient() (*AzureTestClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	baseClient := aznetwork.NewWithBaseURI(azure.PublicCloud.TokenAudience, authconfig.SubscriptionID)
-	baseClient.Authorizer = autorest.NewBearerAuthorizer(servicePrincipleToken)
+	networkBaseClient := aznetwork.NewWithBaseURI(azure.PublicCloud.TokenAudience, authconfig.SubscriptionID)
+	networkBaseClient.Authorizer = autorest.NewBearerAuthorizer(servicePrincipleToken)
+
+	computeBaseClient := azcompute.NewWithBaseURI(azure.PublicCloud.TokenAudience, authconfig.SubscriptionID)
+	computeBaseClient.Authorizer = autorest.NewBearerAuthorizer(servicePrincipleToken)
 
 	c := &AzureTestClient{
-		networkClient: baseClient,
+		networkClient: networkBaseClient,
+		computeClient: computeBaseClient,
 	}
 
 	return c, nil
@@ -61,4 +67,19 @@ func (tc *AzureTestClient) createSubnetsClient() *aznetwork.SubnetsClient {
 // CreateVirtualNetworksClient generates virtual network client with the same baseclient as azure test client
 func (tc *AzureTestClient) createVirtualNetworksClient() *aznetwork.VirtualNetworksClient {
 	return &aznetwork.VirtualNetworksClient{BaseClient: tc.networkClient}
+}
+
+// createNetworkInterfaceClient generates virtual network client with the same baseclient as azure test client
+func (tc *AzureTestClient) createInterfacesClient() *aznetwork.InterfacesClient {
+	return &aznetwork.InterfacesClient{BaseClient: tc.networkClient}
+}
+
+// GetPublicIPAddressesClient generates virtual network client with the same baseclient as azure test client
+func (tc *AzureTestClient) GetPublicIPAddressesClient() *aznetwork.PublicIPAddressesClient {
+	return &aznetwork.PublicIPAddressesClient{BaseClient: tc.networkClient}
+}
+
+// createVirtualMachineClient generates virtual network client with the same baseclient as azure test client
+func (tc *AzureTestClient) createVirtualMachinesClient() *azcompute.VirtualMachinesClient {
+	return &azcompute.VirtualMachinesClient{BaseClient: tc.computeClient}
 }

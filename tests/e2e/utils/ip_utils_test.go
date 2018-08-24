@@ -56,3 +56,8 @@ func TestGetNextSubnet(t *testing.T) {
 	assert.Empty(t, err)
 	assert.Equal(t, cidrResult, cidr)
 }
+
+func TestAA(t *testing.T) {
+	az, _ := CreateAzureTestClient()
+	az.GetPublicIP("adfdsaf")
+}
