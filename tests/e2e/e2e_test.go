@@ -28,7 +28,7 @@ import (
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 
-	//_ "k8s.io/cloud-provider-azure/tests/e2e/autoscaling"
+	_ "k8s.io/cloud-provider-azure/tests/e2e/autoscaling"
 	_ "k8s.io/cloud-provider-azure/tests/e2e/network"
 )
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -62,6 +63,11 @@ func TestGetNextSubnet(t *testing.T) {
 }
 
 func TestAA(t *testing.T) {
+	rsa := os.Getenv("K8S_AZURE_SSHPUB")
+	signer, err := ssh.ParsePrivateKey([]byte(rsa))
+	if err != nil {
+		log.Fatalf("unable to parse private key: %v", err)
+	}
 	var hostKey ssh.PublicKey
 	// An SSH client is represented with a ClientConn.
 	//
@@ -69,13 +75,13 @@ func TestAA(t *testing.T) {
 	// implementation of AuthMethod via the Auth field in ClientConfig,
 	// and provide a HostKeyCallback.
 	config := &ssh.ClientConfig{
-		User: "t-xinhli",
+		User: "azureuser",
 		Auth: []ssh.AuthMethod{
-			ssh.Password("Lixinhe86624633"),
+			ssh.PublicKeys(signer),
 		},
 		HostKeyCallback: ssh.FixedHostKey(hostKey),
 	}
-	client, err := ssh.Dial("tcp", "40.76.11.83:22", config)
+	client, err := ssh.Dial("tcp", "40.76.8.80:22", config)
 	if err != nil {
 		log.Fatal("Failed to dial: ", err)
 	}
